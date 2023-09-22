@@ -22,7 +22,22 @@ The project consists of several key files and directories, each serving a specif
 
 -  **project.db**: This db file contain the database schema . It defines tables for users, stores, sales data, and more
 
-  
+
+## Design Choices
+While developing this project, I made certain design choices to ensure its effectiveness and user-friendliness:
+
+- **High Security**: Security is a top priority. User authentication is implemented with robust encryption to safeguard sensitive financial data. Access controls are in place to restrict unauthorized access to certain features.
+
+- **User-Centric Design**: The application is designed with the end-users in mind. It features a clean and intuitive interface to minimize the learning curve for users with varying technical backgrounds.
+
+- **Simplicity**: I opted for a straightforward and minimalistic design to make the application easy to navigate and use. This simplicity enhances the overall user experience and reduces the likelihood of errors.
+
+- **Flexibility**: The application is adaptable to different types of retail businesses. Admins can create and manage stores, cashiers, and users, allowing businesses to tailor the system to their unique needs.
+
+## Conclusion
+
+In conclusion, "Collect Daily Cash Receipts" is a web application designed to streamline financial operations for retail businesses. It prioritizes security, simplicity, and user-friendliness to make the lives of accounting and management teams easier. I hope you find this application valuable, and I encourage you to explore it further to discover its full range of features.
+
 
 ## Running the Project on Windows Server 2022
 
@@ -191,7 +206,7 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
   Please note that these instructions are based on a basic Flask application setup. Depending on the complexity
 
 
-## To run The Flask project on macOS
+## Running the project on macOS
 
 1. Set Up a Virtual Environment (Optional/Recommended)
 - It's a good practice to use a virtual environment to isolate your project's dependencies. Open Terminal and navigate to your project directory:
@@ -263,22 +278,6 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
 
 Please note that these instructions are based on a basic Flask application setup. Depending on the complexity of your project, additional configuration may be required. Also, make sure to replace placeholders like /path/to/your/flask/project with the actual paths specific to your project.
 
-
-
-## Design Choices
-While developing this project, I made certain design choices to ensure its effectiveness and user-friendliness:
-
-- **High Security**: Security is a top priority. User authentication is implemented with robust encryption to safeguard sensitive financial data. Access controls are in place to restrict unauthorized access to certain features.
-
-- **User-Centric Design**: The application is designed with the end-users in mind. It features a clean and intuitive interface to minimize the learning curve for users with varying technical backgrounds.
-
-- **Simplicity**: I opted for a straightforward and minimalistic design to make the application easy to navigate and use. This simplicity enhances the overall user experience and reduces the likelihood of errors.
-
-- **Flexibility**: The application is adaptable to different types of retail businesses. Admins can create and manage stores, cashiers, and users, allowing businesses to tailor the system to their unique needs.
-
-## Conclusion
-
-In conclusion, "Collect Daily Cash Receipts" is a web application designed to streamline financial operations for retail businesses. It prioritizes security, simplicity, and user-friendliness to make the lives of accounting and management teams easier. I hope you find this application valuable, and I encourage you to explore it further to discover its full range of features.
 
 ## Project Testing Credentials
 - Username: admin
