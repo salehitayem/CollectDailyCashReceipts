@@ -38,6 +38,6 @@ While developing this project, I made certain design choices to ensure its effec
 
 In conclusion, "Collect Daily Cash Receipts" is a web application designed to streamline financial operations for retail businesses. It prioritizes security, simplicity, and user-friendliness to make the lives of accounting and management teams easier. I hope you find this application valuable, and I encourage you to explore it further to discover its full range of features.
 
-## For testing the project 
-- username: admin
-- password: admin
+## Project Testing Credentials
+- Username: admin
+- Password: admin
