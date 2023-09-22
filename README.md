@@ -21,6 +21,7 @@ The project consists of several key files and directories, each serving a specif
 - **helpers.py**: This Python file defines a Flask web application utility that includes a decorator for login authentication (login_required) and a function for rendering apology messages (apology) with special character escaping.
 
 -  **project.db**: This db file contain the database schema . It defines tables for users, stores, sales data, and more
+
   
 
 ## Running the Project on Windows Server 2022
@@ -88,6 +89,8 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
       </configuration>
 ```
 - Replace the paths with the correct paths to your virtual environment and Flask project.
+
+
 
 ## Running the Project on a Linux Server
 
@@ -186,6 +189,80 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
   Open a web browser and navigate to your server's IP address or domain name. Your Flask app   should now be running on your Linux server via Apache.
 
   Please note that these instructions are based on a basic Flask application setup. Depending on the complexity
+
+
+## To run The Flask project on macOS
+
+1. Set Up a Virtual Environment (Optional/Recommended)
+- It's a good practice to use a virtual environment to isolate your project's dependencies. Open Terminal and navigate to your project directory:
+  ```bash
+     cd /path/to/your/flask/project
+- Create a virtual environment and activate it:
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+
+2. Install Dependencies
+
+- If you're using a virtual environment, make sure it's activated (as shown above). Then, install the required Python packages from your requirements.txt file:
+  ```bash
+  pip install -r requirements.txt
+
+3. Configure Apache
+- macOS comes with Apache pre-installed, but it's not enabled by default. You need to create an Apache configuration file for your Flask app.
+- Create a new configuration file in the Apache user configuration directory. Replace /path/to/your/flask/project with the actual path to your Flask project directory:
+  ```bash
+  sudo nano /etc/apache2/users/username.conf
+
+- Add the following configuration to the file, replacing username with your macOS username and /path/to/your/flask/project with the actual path to your Flask project:
+
+  ```bash
+  <Directory "/path/to/your/flask/project">
+    Options Indexes MultiViews FollowSymLinks
+    AllowOverride All
+    Require all granted
+  </Directory>
+- Save the file and exit the text editor.
+
+4. Create a Virtual Host Configuration
+- Create a virtual host configuration file for your Flask app:
+  ```bash
+  sudo nano /etc/apache2/other/myflaskapp.conf
+- Add the following configuration, replacing myflaskapp with a unique name for your app, and /path/to/your/flask/project with the actual path to your Flask project:
+  ```bash
+  <VirtualHost *:80>
+    ServerName localhost
+    DocumentRoot "/path/to/your/flask/project"
+    WSGIScriptAlias / /path/to/your/flask/project/myflaskapp.wsgi
+  </VirtualHost>
+- Save the file and exit the text editor.
+
+5. Create a WSGI File
+- Create a WSGI file for your Flask application. In your project directory, create a file named myflaskapp.wsgi:
+  ```bash
+  nano /path/to/your/flask/project/myflaskapp.wsgi
+- Add the following content, replacing app with the actual name of your Flask application instance:
+  ```bash
+  #!/usr/bin/python
+  import sys
+  import logging
+  
+  logging.basicConfig(stream=sys.stderr)
+  sys.path.insert(0, "/path/to/your/flask/project")
+  
+  from app import app as application
+- Save the file and exit the text editor.
+
+6. Enable Apache and Restart
+- Enable Apache and restart it to apply the changes:
+  ```bash
+  sudo apachectl start
+
+7. Test Your Flask App
+  Open a web browser and navigate to http://localhost. Your Flask app should now be running on your macOS system through Apache.
+
+Please note that these instructions are based on a basic Flask application setup. Depending on the complexity of your project, additional configuration may be required. Also, make sure to replace placeholders like /path/to/your/flask/project with the actual paths specific to your project.
+
 
 
 ## Design Choices
