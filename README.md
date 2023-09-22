@@ -60,7 +60,7 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
 
    Your Flask app should now be running through IIS on your Windows Server 2022. If you encounter any issues or error messages, check your configuration and paths for accuracy.
 
-## IIS Configuration
+# IIS Configuration
 
 Follow these steps to configure IIS:
 
