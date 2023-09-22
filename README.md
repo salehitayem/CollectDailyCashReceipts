@@ -32,62 +32,15 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
 
    ```bash
    python -m venv venv
-Activate the virtual environment:
-venv\Scripts\activate
-Install Dependencies: Install the required Python packages from your requirements.txt file:
-pip install -r requirements.txt
-Configure IIS: Open the "Internet Information Services (IIS) Manager" on your Windows Server. Create a virtual directory and configure the ISAPI_WSGI module. For detailed instructions, refer to the IIS Configuration section below.
 
-Configure Flask App: Create a web.config file in your Flask project directory and configure it with the appropriate settings. Refer to the Flask App Configuration section below for guidance.
+3. Install Dependencies: Install the required Python packages from your requirements.txt file:
 
-Restart IIS: In the IIS Manager, select the server node in the left-hand pane and click on "Restart" in the Actions pane on the right.
+   ```bash
+   pip install -r requirements.txt
 
-Test Your Flask App: Open a web browser and navigate to your server's IP address or domain name.
+4. Configure IIS:
 
-Your Flask app should now be running through IIS on your Windows Server 2022. If you encounter any issues or error messages, check your configuration and paths for accuracy.
-
-IIS Configuration
-Follow these steps to configure IIS:
-
-Open the IIS Manager.
-Create a virtual directory with an alias (e.g., "myflaskapp") and set the physical path to your Flask project directory.
-Download and install the ISAPI_WSGI module from ISAPI_WSGI Downloads.
-Configure the ISAPI_WSGI module in IIS to handle requests for your Flask app. For detailed instructions, refer to the IIS Configuration section above.
-Flask App Configuration
-Create a web.config file in your Flask project directory and configure it as follows:
-
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <system.webServer>
-        <handlers>
-            <add name="Python via ISAPI_WSGI" path="*" verb="*" modules="IsapiModule" scriptProcessor="C:\path\to\isapi-wsgi.dll" resourceType="Unspecified" requireAccess="Script"/>
-        </handlers>
-    </system.webServer>
-    <appSettings>
-        <add key="PYTHONHOME" value="C:\path\to\venv" />
-        <add key="WSGIPythonHome" value="C:\path\to\venv" />
-        <add key="WSGIPythonPath" value="C:\path\to\your\flask\project;C:\path\to\your\flask\project\venv\Lib\site-packages" />
-    </appSettings>
-</configuration>
-Replace the paths with the correct paths to your virtual environment and Flask project.
-
-Design Choices
-While developing this project, I made certain design choices to ensure its effectiveness and user-friendliness:
-
-High Security: Security is a top priority. User authentication is implemented with robust encryption to safeguard sensitive financial data. Access controls are in place to restrict unauthorized access to certain features.
-
-User-Centric Design: The application is designed with the end-users in mind. It features a clean and intuitive interface to minimize the learning curve for users with varying technical backgrounds.
-
-Simplicity: I opted for a straightforward and minimalistic design to make the application easy to navigate and use. This simplicity enhances the overall user experience and reduces the likelihood of errors.
-
-Flexibility: The application is adaptable to different types of retail businesses. Admins can create and manage stores, cashiers, and users, allowing businesses to tailor the system to their unique needs.
-
-Conclusion
-In conclusion, "Collect Daily Cash Receipts" is a web application designed to streamline financial operations for retail businesses. It prioritizes security, simplicity, and user-friendliness to make the lives of accounting and management teams easier. I hope you find this application valuable, and I encourage you to explore it further to discover its full range of features.
-
-Project Testing Credentials
-Username: admin
-Password: admin
-
-
-
+- Open the "Internet Information Services (IIS) Manager" on your Windows Server.
+- Create a virtual directory with an alias (e.g., "myflaskapp") and set the physical path to your Flask project directory.
+- Download and install the ISAPI_WSGI module from ISAPI_WSGI Downloads.
+- Configure the ISAPI_WSGI module in IIS to handle requests for your Flask app. For detailed instructions, refer to the IIS Configuration section below.
