@@ -47,7 +47,7 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
  
 5. Configure Flask App:
 
-Create a web.config file in your Flask project directory and configure it with the appropriate settings. Refer to the Flask App Configuration section below for guidance.
+- Create a web.config file in your Flask project directory and configure it with the appropriate settings. Refer to the Flask App Configuration section below for guidance.
 
 6. Restart IIS:
 
@@ -56,9 +56,9 @@ Create a web.config file in your Flask project directory and configure it with t
 
 7. Test Your Flask App:
 
-Open a web browser and navigate to your server's IP address or domain name.
+-Open a web browser and navigate to your server's IP address or domain name.
 
-Your Flask app should now be running through IIS on your Windows Server 2022. If you encounter any issues or error messages, check your configuration and paths for accuracy.
+   Your Flask app should now be running through IIS on your Windows Server 2022. If you encounter any issues or error messages, check your configuration and paths for accuracy.
 
 ## IIS Configuration
 
