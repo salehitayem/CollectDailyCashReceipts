@@ -276,7 +276,7 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
 7. Test Your Flask App
   Open a web browser and navigate to http://localhost. Your Flask app should now be running on your macOS system through Apache.
 
-Please note that these instructions are based on a basic Flask application setup. Depending on the complexity of your project, additional configuration may be required. Also, make sure to replace placeholders like /path/to/your/flask/project with the actual paths specific to your project.
+Please make sure to replace placeholders like /path/to/your/flask/project with the actual paths specific the project file name.
 
 
 ## Project Testing Credentials
