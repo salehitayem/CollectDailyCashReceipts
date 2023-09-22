@@ -89,6 +89,105 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
 ```
 - Replace the paths with the correct paths to your virtual environment and Flask project.
 
+## Running the Project on a Linux Server
+
+1. Install Required Software
+
+- Make sure your Linux server has Python and other necessary tools installed:
+
+  ```bash
+  sudo apt update
+  sudo apt install python3 python3-venv python3-pip apache2 libapache2-mod-wsgi-py3
+2. Set Up a Virtual Environment
+
+- Navigate to the directory where your Flask project is located and create a virtual environment:
+  ```bash
+  cd /path/to/your/flask/project
+  python3 -m venv venv
+
+3. Activate the Virtual Environment
+
+- Activate the virtual environment:
+
+  ```bash
+  source venv/bin/activate
+
+4. Install Dependencies
+
+- Install the required Python packages from your requirements.txt file:
+  ```bash
+  pip install -r requirements.txt
+
+5. Configure Apache
+
+- Create an Apache configuration file for your Flask app. You can create a new file in the /etc/apache2/sites-available/ directory, for example, myflaskapp.conf. Use a text editor to create and edit the file:
+
+  ```bash
+  sudo nano /etc/apache2/sites-available/myflaskapp.conf
+
+- Add the following configuration, replacing /path/to/your/flask/project and /path/to/venv with the actual paths to your Flask project and virtual environment:
+
+  ```bash
+  <VirtualHost *:80>
+    ServerName your_domain_or_server_ip
+    ServerAlias www.your_domain_or_server_ip
+
+    DocumentRoot /path/to/your/flask/project
+
+    WSGIDaemonProcess myflaskapp python-path=/path/to/your/flask/project:/path/to/venv/lib/python3.x/site-packages
+    WSGIProcessGroup myflaskapp
+    WSGIScriptAlias / /path/to/your/flask/project/myflaskapp.wsgi
+
+    <Directory /path/to/your/flask/project>
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+  </VirtualHost>
+
+- Save the file and exit the text editor.
+
+6. Create a WSGI File
+
+- Create a WSGI file for your Flask application. In your project directory, create a file named myflaskapp.wsgi:
+
+  ```bash
+  nano /path/to/your/flask/project/myflaskapp.wsgi
+
+- Add the following content, replacing app with the actual name of your Flask application instance:
+
+  ```bash
+  #!/usr/bin/python
+  import sys
+  import logging
+  
+  logging.basicConfig(stream=sys.stderr)
+  sys.path.insert(0, "/path/to/your/flask/project")
+  
+  from app import app as application
+
+- Save the file and exit the text editor.
+  
+
+7.  Enable Your Site
+
+- Enable your Apache site configuration and restart Apache:
+
+  ```bash
+  sudo a2ensite myflaskapp.conf
+  sudo systemctl restart apache2
+
+8. Set Up Database and Environment Variables
+
+   If your Flask app uses a database or environment variables, make sure to configure them  appropriately. Activate your virtual environment and set the necessary environment variables   in your .env or similar file.
+
+9. Test The  Flask App
+  Open a web browser and navigate to your server's IP address or domain name. Your Flask app   should now be running on your Linux server via Apache.
+
+  Please note that these instructions are based on a basic Flask application setup. Depending on the complexity
+
+
 ## Design Choices
 While developing this project, I made certain design choices to ensure its effectiveness and user-friendliness:
 
