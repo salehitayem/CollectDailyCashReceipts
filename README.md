@@ -39,6 +39,7 @@ While developing this project, I made certain design choices to ensure its effec
 In conclusion, "Collect Daily Cash Receipts" is a web application designed to streamline financial operations for retail businesses. It prioritizes security, simplicity, and user-friendliness to make the lives of accounting and management teams easier. I hope you find this application valuable, and I encourage you to explore it further to discover its full range of features.
 
 
+
 ## Running the Project on Windows Server 2022
 
 To run this Flask project on a Windows Server 2022 using IIS, follow these steps:
@@ -104,6 +105,8 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
       </configuration>
 ```
 - Replace the paths with the correct paths to your virtual environment and Flask project.
+
+
 
 
 
@@ -204,6 +207,8 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
   Open a web browser and navigate to your server's IP address or domain name. Your Flask app   should now be running on your Linux server via Apache.
 
   Please note that these instructions are based on a basic Flask application setup. Depending on the complexity
+
+
 
 
 ## Running the project on macOS
