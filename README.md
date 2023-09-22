@@ -18,9 +18,10 @@ The project consists of several key files and directories, each serving a specif
 
 - **static/**: This directory stores static assets like CSS stylesheets and JavaScript files to enhance the application's appearance and functionality.
 
-- **database.py**: This Python script manages the database schema and interactions. It defines tables for users, stores, sales data, and more.
+- **helpers.py**: This Python file defines a Flask web application utility that includes a decorator for login authentication (login_required) and a function for rendering apology messages (apology) with special character escaping.
 
-- **security.py**: This script focuses on security measures, including user authentication and access control. It ensures that only authorized users can access specific features and data.
+-  **project.db**: This db file contain the database schema . It defines tables for users, stores, sales data, and more
+  
 
 ## Running the Project on Windows Server 2022
 
