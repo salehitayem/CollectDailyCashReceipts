@@ -60,17 +60,17 @@ To run this Flask project on a Windows Server 2022 using IIS, follow these steps
 
    Your Flask app should now be running through IIS on your Windows Server 2022. If you encounter any issues or error messages, check your configuration and paths for accuracy.
 
-# IIS Configuration
+8. IIS Configuration
 
-Follow these steps to configure IIS:
+- Follow these steps to configure IIS:
 
 - Open the IIS Manager.
 - Create a virtual directory with an alias (e.g., "myflaskapp") and set the physical path to your Flask project directory.
 - Download and install the ISAPI_WSGI module from ISAPI_WSGI Downloads.
 - Configure the ISAPI_WSGI module in IIS to handle requests for your Flask app. For detailed instructions, refer to the IIS Configuration section above.
 
-## Flask App Configuration
-Create a web.config file in your Flask project directory and configure it as follows:
+9. Flask App Configuration
+- Create a web.config file in your Flask project directory and configure it as follows:
 ```bash
       <?xml version="1.0" encoding="UTF-8"?>
       <configuration>
@@ -86,7 +86,7 @@ Create a web.config file in your Flask project directory and configure it as fol
           </appSettings>
       </configuration>
 ```
-Replace the paths with the correct paths to your virtual environment and Flask project.
+- Replace the paths with the correct paths to your virtual environment and Flask project.
 
 ## Design Choices
 While developing this project, I made certain design choices to ensure its effectiveness and user-friendliness:
