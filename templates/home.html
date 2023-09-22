@@ -1,0 +1,1125 @@
+{% extends 'managerlayout.html' %}
+
+{% block title %}
+Home
+{% endblock %}
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f5f9;
+    padding: 0px;
+  }
+
+  .table-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+
+  .table {
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+
+  }
+
+  .table th, .table td {
+    padding: 1px;
+    text-align: center;
+    border-bottom: 0px solid #ddd;
+    vertical-align: middle;
+  }
+
+  .table th {
+    background-color: #f8f9fa;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Adjust input field width */
+  input[type="number"] {
+    width: 100%;
+    text-align: center;
+
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .btn-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* Blue color scheme */
+  .table-container {
+    background-color: #e9f0f5;
+  }
+
+  .table {
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap; /* Prevents the content from wrapping */
+    overflow: hidden; /* Hides content that exceeds cell dimensions */
+    text-overflow: ellipsis; /* Adds an ellipsis (...) to indicate hidden content */
+  }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="table-container">
+  <table class="table">
+
+    <tr>
+        <th></th>
+        <th>Rate</th>
+        <th>Current</th>
+    </tr>
+    <form action="/update_rate" method="post">
+      <tr>
+          <td>USD</td>
+          <td><input type="number" step="any" min="0" name="rate_usd" id="rate_usd"></td>
+
+          <td><input type="number" step ="any" {%if info%} value={{info[0]['usd']}} {%endif%}min="0" name="current_rate_usd" id="current_rate_usd" disabled oninput="validateForm()" ></td>
+
+        </tr>
+      <tr>
+          <td>JOD</td>
+          <td><input type="number" step="any" min="0" name="rate_jod" id="rate_jod"></td>
+          <td><input type="number" step ="any" {%if info%} value={{info[0]['jod']}} {%endif%} min="0" name="current_rate_jod" id="current_rate_jod" disabled oninput="validateForm()"></td>
+      </tr>
+      <tr>
+          <th></th>
+          <th><button class="btn btn-primary btn-sm" type="submit" id="addRate">Update / Add</button></th>
+          <th></th>
+      </tr>
+    </form>
+  </table>
+  <table class="table">
+    <tr>
+      <th>Home</th>
+    </tr>
+    <tr>
+      <th>
+        <form action="/update_current_date" method="post">
+            <input type="date" id="selected_date" name="selected_date" {%if cdate %} value="{{ cdate[0]['cdate'] }}" {%endif%}>
+            <button class="btn btn-primary btn-sm" type="submit">Select</button>
+        </form>
+      </th>
+    </tr>
+  </table>
+  <table class="table">
+    <tr>
+        <th>Store</th>
+        <th>User</th>
+        <th>Date</th>
+        <th>Created By</th>
+      </tr>
+    <tr>
+      <td>{{store}}</td>
+      <td>{{uname[0]['username']}}</td>
+      <td>{%if info%} {{info[0]['cdate']}} {%endif%}</td>
+      <td>{%if cname %}{{cname[0]['username']}} {%endif%}</td>
+    </tr>
+  </table>
+</div>
+
+
+<table class="table table-hover" id="exportTable">
+ 
+    <thead>
+      {%if info%}
+      <tr>
+          <th scope="col">رقم الكاش</th>
+          <th scope="col">اسم الكاشير</th>
+          <th scope="col">رقم الكاشير</th>
+          <th scope="col">شيقل</th>
+          <th scope="col">دولار</th>
+          <th scope="col">دينار</th>
+          <th scope="col">credit</th>
+          <th scope="col">فيزا-بنك فلسطين</th>
+          <th scope="col">ايزي لايف</th>
+          <th scope="col">شيك</th>
+          <th scope="col">كوبون</th>
+          <th scope="col">جوال باي</th>
+          <th scope="col">فيرا - البنك العربي</th>
+          <th scope="col">المجموع الفعلي</th>
+          <th scope="col">X-report</th>
+          <th scope="col">الفارق- شيقل</th>
+          <th></th>
+      </tr>
+    </thead>
+    <tbody>
+            <!--should be inside input or label-->
+      
+        {%if cashrep%}
+        {% for i in cashrep %}
+          <form action="editx" method = "post">
+            <tr>
+              <input type="hidden" name="row_id" value="{{ i['id'] }}">
+              <td>{{i['cash_number']}}</td>
+              <td>{{i['cashier_name']}}</td>
+              <td>{{i['cashier_id']}}</td>
+              <td>{{i['ils']}}</td>
+              <td>{{i['usd']}}</td>
+              <td>{{i['jod']}}</td>
+              <td>{{i['credit']}}</td>
+              <td>{{i['visa_palestine']}}</td>
+              <td>{{i['easy_life']}}</td>
+              <td>{{i['bcheck']}}</td>
+              <td>{{i['coupon']}}</td>
+              <td>{{i['jawwal_pay']}}</td>
+              <td>{{i['visa_arabi']}}</td>
+              <td>{{i['ttl_ils']}}</td>
+              <td>{{i['x_report']}}</td>
+              <td>{{i['diff']}}</td>
+              <td><button class="btn btn-primary btn-sm" type="submit" id="addButton">Edit</button>
+            </tr>
+          </form>
+        {% endfor %}
+      {%endif%}
+
+      <form action="/cashxreport" method="post">
+        <tr>
+          <td><select style="width:40px" aria-label="Default select example" id="cash_number" name="cash_number" type="number" oninput="validateForm()">
+            <option value="" disabled selected></option>
+            {% for i in range(1, 13) %}
+                <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+          </td>
+          <td>
+            <select autocomplete="off" id="cashier_name" name="cashier_name" aria-label="Default select example" autofocus style="width:200px">
+              <option disabled selected>---</option>
+                {% if cashiers %}
+                  {% for cashier in cashiers %}
+                    <option value="{{ cashier['name'] }}" data-cashier-number="{{ cashier['id'] }}">{{ cashier['name'] }}</option>
+                  {% endfor %}
+                {% endif %}
+            </select>
+          </td>
+          <td>
+              <input autocomplete="off" style="width:90px" id="cashier_number" name="cashier_number" disabled>
+          </td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="ils" id="ils" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="usd" id="usd" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0"  name="jod" id="jod" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="credit" id="credit" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="ps_visa" id="ps_visa" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="easylife" id="easylife" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="bcheck" id="bcheck" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="coupon" id="coupon" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="jawwal_pay" id="jawwal_pay" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="arabi_visa" id="arabi_visa" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="ttl_cash" id="ttl_cash" disabled oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="x_report" id="x_report" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="diff" id="diff" disabled oninput="validateForm()"></td>
+          <td><button class="btn btn-primary btn-sm" type="submit" id="addButton">Add</button>
+        </tr>
+      </form>
+    </tbody>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th scope="col">اسم التقرير</th>
+        <th scope="col">رقم الكاش</th>
+        <th scope="col">شيقل</th>
+        <th scope="col">دولار</th>
+        <th scope="col">دينار</th>
+        <th scope="col">credit</th>
+        <th scope="col">فيزا-بنك فلسطين</th>
+        <th scope="col">ايزي لايف</th>
+        <th scope="col">شيك</th>
+        <th scope="col">كوبون</th>
+        <th scope="col">جوال باي</th>
+        <th scope="col">فيرا - البنك العربي</th>
+        <th scope="col">مجموع Xreport</th>
+        <th scope="col">Z-report</th>
+        <th scope="col">الفارق- شيقل</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tr>
+      <th scope="col"></th>
+    </tr>
+    <tbody>
+      {%endif%}
+      {%if zrepview %}
+          {% for cash_number, data in zrepview.items() %}
+            
+            <form action="/zreport" method="post"> 
+              <tr>
+                <th scope="col" style="width:90px"></th>
+                <th scope="col" style="width:90px">Z Report Cash</th>
+                <th scope="col">{{ cash_number }}</th>
+                <input type="hidden" name="row_cash_number" id="row_cash_number" value="{{ cash_number }}">
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zils_{{cash_number}}" id="zils_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zusd_{{cash_number}}" id="zusd_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0"  name="zjod_{{cash_number}}" id="zjod_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zcredit_{{cash_number}}" id="zcredit_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zps_visa_{{cash_number}}" id="zps_visa_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zeasylife_{{cash_number}}" id="zeasylife_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zbcheck_{{cash_number}}" id="zbcheck_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zcoupon_{{cash_number}}" id="zcoupon_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zjawwal_pay_{{cash_number}}" id="zjawwal_pay_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zarabi_visa_{{cash_number}}" id="zarabi_visa_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <th><input type="number" style="width:90px" min="0" name="zttl_cash_{{cash_number}}" id="zttl_cash_{{cash_number}}" value="" disabled oninput="zvalidateForm({{cash_number}})"></th>
+                <th><input type="number" style="width:90px" min="0" name="z_report_{{cash_number}}" id="z_report_{{cash_number}}" value="{{ data['x_report'] }}" disabled oninput="zvalidateForm({{cash_number}})"></th>
+                
+                <th><input type="number" style="width:90px" min="0" name="zdiff_{{cash_number}}" id="zdiff_{{cash_number}}" disabled oninput="zvalidateForm({{cash_number}})"></th>
+                <td><button class="btn btn-primary btn-sm" type="submit" id="addButton">Add</button></td>
+              </tr>
+            </form>
+              
+          {% endfor %}
+        {% endif %}
+          <!--not finished 
+          need to emplement edit...-->
+          {%if zrep %}
+          {% for i in zrep %}
+          <form action="/editzrep" method = "post">
+            <tr>
+                <td><input type="hidden" name="row_id" id = "row_id"value="{{ i['id'] }}"></td>
+                <td>Z Report Cash<td>
+                {{i['cash_number']}}
+                <td>{{i['ils']}}</td>
+                <td>{{i['usd']}}</td>
+                <td>{{i['jod']}}</td>
+                <td>{{i['credit']}}</td>
+                <td>{{i['visa_palestine']}}</td>
+                <td>{{i['easy_life']}}</td>
+                <td>{{i['bcheck']}}</td>
+                <td>{{i['coupon']}}</td>
+                <td>{{i['jawwal_pay']}}</td>
+                <td>{{i['visa_arabi']}}</td>
+                <td>{{i['ttl_ils']}}</td>
+                <td>{{i['ttl_x_report']}}</td>
+                <td>{{i['diff']}}</td>
+                <td><button class="btn btn-primary btn-sm" type="submit" id="EditButton">Edit</button>
+            </tr>
+          </form>
+        {% endfor %}
+        {% endif %}
+      {%if ttlview %}
+        </tbody>
+
+        <thead>
+      <tr>
+        <td scope="col"></td>
+        <td scope="col" style="font-size:16px" >مجموع البيع الفعلي الكلي</td>
+        <td scope="col"></td>
+        <td scope="col">{{ ttlview['ils'] }}</td>
+        <td scope="col">{{ ttlview['usd'] }}</td>
+        <td scope="col">{{ ttlview['jod']}}</td>
+        <td scope="col">{{ ttlview['credit'] }}</td>
+        <td scope="col">{{ ttlview['visa_palestine'] }}</td>
+        <td scope="col">{{ ttlview['easy_life'] }}</td>
+        <td scope="col">{{ ttlview['bcheck'] }}</td>
+        <td scope="col">{{ ttlview['coupon'] }}</td>
+        <td scope="col">{{ ttlview['jawwal_pay'] }}</td>
+        <td scope="col">{{ ttlview['visa_arabi'] }}</td>
+        <td scope="col">{{ ttlview['ttl_ils'] }}</td>
+        <td scope="col">{{ ttlview['x_report'] }}</td>
+        <td scope="col">{{ ttlview['diff'] }}</td>
+        <td></td>
+      </tr>
+      {% endif %}
+      {%if ttlview %}
+      <tr>
+        <td scope="col"></td>
+        <td scope="col" style="font-size:16px">مجموع البيع الفعلي شيقل</td>
+        <td scope="col"></td>
+        <td scope="col">{{ ttlview['ils'] }}</td>
+        <td scope="col">{{ (ttlview['usd']  * info[0]['usd'])|round(2) }}</td>
+        <td scope="col">{{ (ttlview['jod']  * info[0]['jod'])|round(2) }}</td>
+        <td scope="col">{{ ttlview['credit'] }}</td>
+        <td scope="col">{{ ttlview['visa_palestine'] }}</td>
+        <td scope="col">{{ ttlview['easy_life'] }}</td>
+        <td scope="col">{{ ttlview['bcheck'] }}</td>
+        <td scope="col">{{ ttlview['coupon'] }}</td>
+        <td scope="col">{{ ttlview['jawwal_pay'] }}</td>
+        <td scope="col">{{ ttlview['visa_arabi'] }}</td>
+        <td scope="col">{{ ttlview['ttl_ils'] }}</td>
+        <td scope="col">{{ ttlview['x_report'] }}</td>
+        <td scope="col">{{ ttlview['diff'] }}</td>
+        <td></td>
+      </tr>
+      {% endif %}
+      {%if ttlzview %}
+        <tr>
+            <!--ttl1 import from db-->
+            <td scope="col"></td>
+            <td scope="col">مجموع البيع على النظام</td>
+            <td scope="col"></td>
+            <td scope="col">{{ ttlzview['ils'] }}</td>
+            <td scope="col">{{ ttlzview['usd']}}</td>
+            <td scope="col">{{ ttlzview['jod']}}</td>
+            <td scope="col">{{ ttlzview['credit'] }}</td>
+            <td scope="col">{{ ttlzview['visa_palestine'] }}</td>
+            <td scope="col">{{ ttlzview['easy_life'] }}</td>
+            <td scope="col">{{ ttlzview['bcheck'] }}</td>
+            <td scope="col">{{ ttlzview['coupon'] }}</td>
+            <td scope="col">{{ ttlzview['jawwal_pay'] }}</td>
+            <td scope="col">{{ ttlzview['visa_arabi'] }}</td>
+            <td scope="col">{{ ttlzview['ttl_ils'] }}</td>
+            <td scope="col">{{ ttlzview['ttl_x_report'] }}</td>
+            <td scope="col">{{ ttlzview['diff'] }}</td>
+            <td></td>
+          </tr>
+            <!--import from db multiply witd rate-->
+        <tr>
+            <td scope="col" style="widtd:90px"></td>
+            <td scope="col" style="widtd:90px">مجموع البيع على النظام شيقل</td>
+            <td scope="col"></td>
+            <td scope="col">{{ ttlzview['ils'] }}</td>
+            <td scope="col">{{ (ttlzview['usd']  * info[0]['usd'])|round(2) }}</td>
+            <td scope="col">{{ (ttlzview['jod']  * info[0]['jod'])|round(2) }}</td>
+            <td scope="col">{{ ttlzview['credit'] }}</td>
+            <td scope="col">{{ ttlzview['visa_palestine'] }}</td>
+            <td scope="col">{{ ttlzview['easy_life'] }}</td>
+            <td scope="col">{{ ttlzview['bcheck'] }}</td>
+            <td scope="col">{{ ttlzview['coupon'] }}</td>
+            <td scope="col">{{ ttlzview['jawwal_pay'] }}</td>
+            <td scope="col">{{ ttlzview['visa_arabi'] }}</td>
+            <td scope="col">{{ ttlzview['ttl_ils'] }}</td>
+            <td scope="col">{{ ttlzview['ttl_x_report'] }}</td>
+            <td scope="col">{{ ttlzview['diff'] }}</td>
+            <td></td>
+        </tr>
+      {% endif %}
+      {%if ttlview %}
+        {%if ttlzview %}
+      <tr>
+        <th scope="col"></th>
+        <th scope="col" style="font-size:16px">مجموع الفارق بين البيع الفعلي والنظام شيقل</th>
+        <th scope="col"></th>
+        <th scope="col">{{ (ttlview['ils'] - ttlzview['ils'])|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd']))|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod']) )|round(2) }}</th>
+        <th scope="col">{{ (ttlview['credit'] - ttlzview['credit'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['visa_palestine'] - ttlzview['visa_palestine'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['easy_life'] - ttlzview['easy_life'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['bcheck'] - ttlzview['bcheck'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['coupon'] - ttlzview['coupon'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['jawwal_pay'] - ttlzview['jawwal_pay'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['visa_arabi'] - ttlzview['visa_arabi'])|round(2)  }}</th>
+        <th scope="col"{% if (ttlview['diff'] - ttlzview['diff'])|round(2) == (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) %}
+        style="background-color:#00FF00;" {%else%}
+        style="background-color:#FFCCCC;" {% endif %}>{{ (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['x_report'] - ttlzview['ttl_x_report'])|round(2) }}</th>
+        <th scope="col" {% if (ttlview['diff'] - ttlzview['diff'])|round(2) == (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) %}
+        style="background-color:#00FF00;" {%else%}
+        style="background-color:#FFCCCC;" {% endif %}>{{ (ttlview['diff'] - ttlzview['diff'])|round(2)}}</th>
+        <th><button class="btn btn-primary btn-sm" id="exportButton">Excel</button></th>
+      </tr>
+        {%endif%}
+      {% endif %}
+      </head>
+  </table>
+{%if zrep %}
+{% if not deposit%}
+<form action="deposit", method = "post">
+  <div class="table-container">
+      <table class="table">
+
+          <tr>
+              <th></th>
+              <th>شيقل</th>
+              <th></th>
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+              <td><input type="number" value="200" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_200" id="rate_ils_200" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_200" id="ttl_rate_ils_200" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="100" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_100" id="rate_ils_100" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_100" id="ttl_rate_ils_100" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="50" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_50" id="rate_ils_50" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_50" id="ttl_rate_ils_50" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="20" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_20" id="rate_ils_20" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_20" id="ttl_rate_ils_20" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="10" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_10" id="rate_ils_10" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_10" id="ttl_rate_ils_10" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="5" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_5" id="rate_ils_5" oninput="ilsForm()"></td>
+              <td><input type="number" disabled disabled min="0" name="ttl_rate_ils_5" id="ttl_rate_ils_5" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="2" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_2" id="rate_ils_2" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_2" id="ttl_rate_ils_2" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="1" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_1" id="rate_ils_1" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_1" id="ttl_rate_ils_1" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+              <td><input type="number" value="0.5" disabled oninput="ilsForm()"></td>
+              <td><input type="number" min="0" name="rate_ils_05" id="rate_ils_05" oninput="ilsForm()"></td>
+              <td><input type="number" disabled min="0" name="ttl_rate_ils_05" id="ttl_rate_ils_05" oninput="ilsForm()"></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+
+
+            <td><input type="number" disabled min="" name="sum_rate_ils" id="sum_rate_ils"></td>
+          </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            <td><input type="number" disabled step="any" min="0" {%if ttlview %} value="{{ (ttlview['ils'] * (-1))|round(2) }}" {% endif %} name="sumd_rate_ils" id="sumd_rate_ils" oninput="ilsForm()"></td>
+          </tr>
+    </table>
+
+      <table class="table">
+          <tr>
+              <th></th>
+              <th>دولار</th>
+              <th></th>
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td><input type="number" value="100" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_100" id="rate_usd_100" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_100" id="ttl_rate_usd_100"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="50" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_50" id="rate_usd_50" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_50" id="ttl_rate_usd_50"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="20" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_20" id="rate_usd_20" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_20" id="ttl_rate_usd_20"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="10" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_10" id="rate_usd_10" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_10" id="ttl_rate_usd_10"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="5" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_5" id="rate_usd_5" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_5" id="ttl_rate_usd_5"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="2" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_2" id="rate_usd_2" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_2" id="ttl_rate_usd_2"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="1" disabled oninput="usdForm()"></td>
+            <td><input type="number" min="0" name="rate_usd_1" id="rate_usd_1" oninput="usdForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_usd_1" id="ttl_rate_usd_1"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td><input type="number" disabled min="0" name="sum_rate_usd" id="sum_rate_usd"></td>
+        </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            <td><input type="number" disabled min="0" step="any" {%if ttlview %} value="{{ (ttlview['usd'] * (-1))|round(2) }}" {% endif %} name="sumd_rate_usd" id="sumd_rate_usd" oninput="usdForm()"></td>
+          </tr>
+            <tr>
+            <td></td>
+            <td><input type="number" value="0.00" disabled min="0" name="ttl_deposit" id="ttl_deposit"></td>
+            <td>مجموع النقد المتوفر - شيقل</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><input type="number" disabled min="0" name="deposit_diff" id="deposit_diff" oninput="validateForm()"></td>
+            <td>الفارق - شيقل</td>
+          </tr>
+      </table>
+
+        <table class="table">
+
+          <tr>
+              <th></th>
+              <th>دينار</th>
+              <th></th>
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td><input type="number" value="50" disabled oninput="jodForm()"></td>
+            <td><input type="number" min="0" name="rate_jod_50" id="rate_jod_50" oninput="jodForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_jod_50" id="ttl_rate_jod_50"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="20" disabled oninput="jodForm()"></td>
+            <td><input type="number" min="0" name="rate_jod_20" id="rate_jod_20" oninput="jodForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_jod_20" id="ttl_rate_jod_20"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="10" disabled oninput="jodForm()"></td>
+            <td><input type="number" min="0" name="rate_jod_10" id="rate_jod_10" oninput="jodForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_jod_10" id="ttl_rate_jod_10"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="5" disabled oninput="jodForm()"></td>
+            <td><input type="number" min="0" name="rate_jod_5" id="rate_jod_5" oninput="jodForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_jod_5" id="ttl_rate_jod_5"></td>
+        </tr>
+        <tr>
+            <td><input type="number" value="1" disabled oninput="jodForm()"></td>
+            <td><input type="number" min="0" name="rate_jod_1" id="rate_jod_1" oninput="jodForm()"></td>
+            <td><input type="number" disabled min="0" name="ttl_rate_jod_1" id="ttl_rate_jod_1"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td><input type="number" disabled min="0" name="sum_rate_jod" id="sum_rate_jod"></td>
+        </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            <td><input type="number" step="any" disabled min="0" {%if ttlview %} value="{{ (ttlview['jod'] * (-1))|round(2) }}" {% endif %} name="sumd_rate_jod" id="sumd_rate_jod" oninput="validateForm()"></td>
+          </tr>
+          <tr>
+            <td><td>
+            <td><button class="btn btn-primary" type="submit" id="depositButton">Deposit</button></td>
+          </tr>
+
+      </table>
+    </form>
+  </div>
+{%endif%}
+{%endif%}
+
+{% if zrep %}
+{% if deposit%}
+<form action="deletedeposit", method = "post">
+  <div class="table-container">
+      <table class="table table-hover">
+
+          <tr>
+              <th></th>
+              <th>شيقل</th>
+              <th></th>
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td>200</td>
+            <td>{{deposit[0]['ils_200']}}</td>
+            <td>{{ (deposit[0]['ils_200'] * 200) }}</td>
+          </tr>
+          <tr>
+            <td>100</td>
+            <td>{{deposit[0]['ils_100']}}</td>
+            <td>{{ (deposit[0]['ils_100'] * 100) }}</td>
+          </tr>
+          <tr>
+            <td>50</td>
+            <td>{{deposit[0]['ils_50']}}</td>
+            <td>{{ (deposit[0]['ils_50'] * 50) }}</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <td>{{deposit[0]['ils_20']}}</td>
+            <td>{{ ( deposit[0]['ils_20'] * 20 ) }}</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>{{deposit[0]['ils_10']}}</td>
+            <td>{{ (deposit[0]['ils_10'] * 10) }}</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>{{deposit[0]['ils_5']}}</td>
+            <td>{{ (deposit[0]['ils_5'] * 5)}}</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>{{deposit[0]['ils_2']}}</td>
+            <td>{{ (deposit[0]['ils_2'] * 2) }}</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>{{deposit[0]['ils_1']}}</td>
+            <td>{{ (deposit[0]['ils_1'] * 1) }}</td>
+          </tr>
+          <tr>
+            <td>0.5</td>
+            <td>{{deposit[0]['ils_05']}}</td>
+            <td>{{ ((deposit[0]['ils_05'] * 0.5)|round(2)) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <th>{{( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}}</th>
+          </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            {%if ttlview %}
+            <th> {{ (((ttlview['ils'] * (-1))|round(2) + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))))|round(2)}}</th>
+            {% endif %}
+          </tr>
+    </table>
+
+      <table class="table table-hover ">
+          <tr>
+              <th></th>
+              <th>دولار</th>
+              <th></th>
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td>100</td>
+            <td>{{deposit[0]['usd_100']}}</td>
+            <td>{{ (deposit[0]['usd_100'] * 100) }}</td>
+          </tr>
+          <tr>
+            <td>50</td>
+            <td>{{deposit[0]['usd_50']}}</td>
+            <td>{{ (deposit[0]['usd_50'] * 50) }}</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <td>{{deposit[0]['usd_20']}}</td>
+            <td>{{ ( deposit[0]['usd_20'] * 20 ) }}</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>{{deposit[0]['usd_10']}}</td>
+            <td>{{ (deposit[0]['usd_10'] * 10) }}</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>{{deposit[0]['usd_5']}}</td>
+            <td>{{ (deposit[0]['usd_5'] * 5)}}</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>{{deposit[0]['usd_2']}}</td>
+            <td>{{ (deposit[0]['usd_2'] * 2) }}</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>{{deposit[0]['usd_1']}}</td>
+            <td>{{ (deposit[0]['usd_1'] * 1) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <th>{{( ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}}</th>
+          </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            {%if ttlview %}
+            <th> {{ (( (ttlview['usd'] * (-1) )+ ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1) ) ))|round(2)}}</th>
+            {% endif %}
+          </tr>
+      </table>
+
+        <table class="table table-hover">
+
+          <tr>
+              <th></th>
+              <th>دينار</th>
+              <th></th>
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td>50</td>
+            <td>{{deposit[0]['jod_50']}}</td>
+            <td>{{ (deposit[0]['jod_50'] * 50) }}</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <td>{{deposit[0]['jod_20']}}</td>
+            <td>{{ ( deposit[0]['jod_20'] * 20 ) }}</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>{{deposit[0]['jod_10']}}</td>
+            <td>{{ (deposit[0]['jod_10'] * 10) }}</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>{{deposit[0]['jod_5']}}</td>
+            <td>{{ (deposit[0]['jod_5'] * 5)}}</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>{{deposit[0]['jod_1']}}</td>
+            <td>{{ (deposit[0]['jod_1'] * 1) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <th>{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}}</th>
+          </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            {%if ttlview %}
+            <th> {{ (((ttlview['jod'] * (-1))|round(2) + (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) +  (deposit[0]['jod_1'] * 1) ))|round(2)}}</th>
+            {% endif %}
+          </tr>
+
+      </table>
+      <input type="hidden" name="deposit_id" id = "deposit_id"value="{{ deposit[0]['id'] }}">
+      <button class="btn btn-primary btn-sm" type="submit" id="deletedepositButton">Delete</button>
+    </form>
+  </div>
+
+{%endif%}
+{%endif%}
+
+    <script>
+
+            const inputils = document.getElementById("ils");
+            const inputusd = document.getElementById("usd");
+            const inputjod = document.getElementById("jod");
+            const inputps_visa = document.getElementById("ps_visa");
+            const inputcredit = document.getElementById("credit");
+            const inputeasylife = document.getElementById("easylife");
+            const inputbcheck = document.getElementById("bcheck");
+            const inputcoupon = document.getElementById("coupon");
+            const inputjawwal_pay = document.getElementById("jawwal_pay");
+            const inputarabi_visa = document.getElementById("arabi_visa");
+            const inputttl_cash = document.getElementById("ttl_cash");
+            const inputx_report = document.getElementById("x_report");
+            const inputdiff = document.getElementById("diff");
+            const ttl_deposit = document.getElementById("ttl_deposit");
+            const sum_rate_ils = document.getElementById("sum_rate_ils");
+            const sum_rate_usd = document.getElementById("sum_rate_usd");
+            const sum_rate_jod = document.getElementById("sum_rate_jod");
+
+
+
+            const current_rate_jod = document.getElementById("current_rate_jod");
+            const current_rate_usd = document.getElementById("current_rate_usd");
+
+            function update() {
+              ttl_deposit.value = sum_rate_ils.value;
+            }
+
+            function ilsForm() {
+              var rateInputs = document.querySelectorAll('input[id^="rate_ils_"]');
+
+              rateInputs.forEach(function(input) {
+                  var rateValue = parseFloat(input.value);
+                  var totalInputId = "ttl_" + input.id;
+                  var totalInput = document.getElementById(totalInputId);
+
+                  if (!isNaN(rateValue)) {
+                      totalInput.value = (rateValue * parseFloat(input.parentElement.previousElementSibling.firstElementChild.value)).toFixed(2);
+                  } else {
+                      totalInput.value = "";
+                  }
+              });
+
+              // Calculate and update the sum of all ttl_rate_ils fields
+              var sum = 0;
+              var totalRateInputs = document.querySelectorAll('input[id^="ttl_rate_ils_"]');
+
+              totalRateInputs.forEach(function(totalInput) {
+                  var totalValue = parseFloat(totalInput.value);
+                  if (!isNaN(totalValue)) {
+                      sum += totalValue;
+                  }
+              });
+              {% if ttlview %}
+              var ils_value = {{ttlview['ils']}};
+              {% else %}
+              var ils_value = 0
+              {% endif %}
+              var ttlsumx = document.getElementById("sumd_rate_ils");
+              var sumInput = document.getElementById("sum_rate_ils");
+              
+              sumInput.value = sum.toFixed(2);
+              ttlsumx.value = (sumInput.value - ils_value).toFixed(2);
+              ttlSum();
+          }
+        function usdForm() {
+          var rateInputs = document.querySelectorAll('input[id^="rate_usd_"]');
+
+          rateInputs.forEach(function(input) {
+              var rateValue = parseFloat(input.value);
+              var totalInputId = "ttl_" + input.id;
+              var totalInput = document.getElementById(totalInputId);
+
+              if (!isNaN(rateValue)) {
+                  totalInput.value = (rateValue * parseFloat(input.parentElement.previousElementSibling.firstElementChild.value)).toFixed(2);
+              } else {
+                  totalInput.value = "";
+              }
+          });
+
+          // Calculate and update the sum of all ttl_rate_usd fields
+          var sum = 0;
+          var totalRateInputs = document.querySelectorAll('input[id^="ttl_rate_usd_"]');
+
+          totalRateInputs.forEach(function(totalInput) {
+              var totalValue = parseFloat(totalInput.value);
+              if (!isNaN(totalValue)) {
+                  sum += totalValue;
+              }
+          });
+          {%if ttlview %}
+          var usd_value = {{ttlview['usd']}};
+          {% else %}
+          var usd_value = 0;
+          {% endif %}
+          var ttlsumx = document.getElementById("sumd_rate_usd");
+          var sumInput = document.getElementById("sum_rate_usd");
+          sumInput.value = sum.toFixed(2);
+          ttlsumx.value = (sumInput.value - usd_value).toFixed(2);
+          ttlSum();
+      }
+      function jodForm() {
+        var rateInputs = document.querySelectorAll('input[id^="rate_jod_"]');
+
+        rateInputs.forEach(function(input) {
+            var rateValue = parseFloat(input.value);
+            var totalInputId = "ttl_" + input.id;
+            var totalInput = document.getElementById(totalInputId);
+
+            if (!isNaN(rateValue)) {
+                totalInput.value = (rateValue * parseFloat(input.parentElement.previousElementSibling.firstElementChild.value)).toFixed(2);
+            } else {
+                totalInput.value = "";
+            }
+        });
+
+        // Calculate and update the sum of all ttl_rate_jod fields
+        var sum = 0;
+        var totalRateInputs = document.querySelectorAll('input[id^="ttl_rate_jod_"]');
+
+        totalRateInputs.forEach(function(totalInput) {
+            var totalValue = parseFloat(totalInput.value);
+            if (!isNaN(totalValue)) {
+                sum += totalValue;
+            }
+        });
+        {% if ttlview %}
+        var jod_value = {{ttlview['jod']}};
+        {% else %}
+        var jod_value = 0;
+        {% endif %}
+        var ttlsumx = document.getElementById("sumd_rate_jod");
+        var sumInput = document.getElementById("sum_rate_jod");
+        sumInput.value = sum.toFixed(2);
+
+        ttlsumx.value = (sumInput.value - jod_value).toFixed(2);
+        ttlSum();
+    }
+        function validateForm() {
+            const inputilsValue = parseFloat(inputils.value) || 0;
+            const inputusdValue = parseFloat(inputusd.value) || 0;
+            const inputjodValue = parseFloat(inputjod.value) || 0;
+            const inputps_visaValue = parseFloat(inputps_visa.value) || 0;
+            const inputcreditValue = parseFloat(inputcredit.value) || 0;
+            const inputeasylifeValue = parseFloat(inputeasylife.value) || 0;
+            const inputbcheckValue = parseFloat(inputbcheck.value) || 0;
+            const inputcouponValue = parseFloat(inputcoupon.value) || 0;
+            const inputjawwal_payValue = parseFloat(inputjawwal_pay.value) || 0;
+            const inputarabi_visaValue = parseFloat(inputarabi_visa.value) || 0;
+            const inputx_reportValue = parseFloat(inputx_report.value) || 0;
+            const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
+            const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
+            const sum =
+                inputilsValue +
+                (inputusdValue * current_rate_usdValue) +
+                (inputjodValue * current_rate_jodValue) +
+                inputps_visaValue +
+                inputcreditValue +
+                inputeasylifeValue +
+                inputbcheckValue +
+                inputcouponValue +
+                inputjawwal_payValue +
+                inputarabi_visaValue;
+
+            inputttl_cash.value = sum.toFixed(2);
+
+            const diff =
+                sum-
+                inputx_reportValue;
+
+            inputdiffValue = inputdiff.value = diff.toFixed(2);
+        }
+        function zvalidateForm(rowNumber) {
+          
+          const zinputils = document.getElementById("zils_" + rowNumber);
+          const zinputusd = document.getElementById("zusd_" + rowNumber);
+          const zinputjod = document.getElementById("zjod_" + rowNumber);
+          const zinputps_visa = document.getElementById("zps_visa_" + rowNumber);
+          const zinputcredit = document.getElementById("zcredit_" + rowNumber);
+          const zinputeasylife = document.getElementById("zeasylife_" + rowNumber);
+          const zinputbcheck = document.getElementById("zbcheck_" + rowNumber);
+          const zinputcoupon = document.getElementById("zcoupon_" + rowNumber);
+          const zinputjawwal_pay = document.getElementById("zjawwal_pay_" + rowNumber);
+          const zinputarabi_visa = document.getElementById("zarabi_visa_" + rowNumber);
+          const zinputttl_cash = document.getElementById("zttl_cash_" + rowNumber);
+          const zinputx_report = document.getElementById("z_report_" + rowNumber);
+          const zinputdiff = document.getElementById("zdiff_" + rowNumber);
+          const inputilsValue = parseFloat(zinputils.value) || 0;
+          const inputusdValue = parseFloat(zinputusd.value) || 0;
+          const inputjodValue = parseFloat(zinputjod.value) || 0;
+          const inputps_visaValue = parseFloat(zinputps_visa.value) || 0;
+          const inputcreditValue = parseFloat(zinputcredit.value) || 0;
+          const inputeasylifeValue = parseFloat(zinputeasylife.value) || 0;
+          const inputbcheckValue = parseFloat(zinputbcheck.value) || 0;
+          const inputcouponValue = parseFloat(zinputcoupon.value) || 0;
+          const inputjawwal_payValue = parseFloat(zinputjawwal_pay.value) || 0;
+          const inputarabi_visaValue = parseFloat(zinputarabi_visa.value) || 0;
+          const inputx_reportValue = parseFloat(zinputx_report.value) || 0;
+
+          const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
+          const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
+          const sum =
+              inputilsValue +
+              (inputusdValue * current_rate_usdValue) +
+              (inputjodValue * current_rate_jodValue) +
+              inputps_visaValue +
+              inputcreditValue +
+              inputeasylifeValue +
+              inputbcheckValue +
+              inputcouponValue +
+              inputjawwal_payValue +
+              inputarabi_visaValue;
+
+          zinputttl_cash.value = sum.toFixed(2);
+
+          const diff =
+              sum-
+              inputx_reportValue;
+
+          zinputdiffValue = zinputdiff.value = diff.toFixed(2);
+      }
+        function ttlSum() {
+          
+
+          {%if info%}
+          const current_rate_jodValue ={{info[0]['jod']}};
+          const current_rate_usdValue ={{info[0]['usd']}}; 
+          {%else%}
+          const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
+          const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
+          {%endif%}
+          var sumILS = parseFloat(document.getElementById('sum_rate_ils').value) || 0;
+          var sumUSD = parseFloat(document.getElementById('sum_rate_usd').value) || 0;
+          var sumJOD = parseFloat(document.getElementById('sum_rate_jod').value) || 0;
+          {% if ttlview %}
+          var ils_value = {{ttlview['ils']}};
+          var usd_value = {{ttlview['usd']}};
+          var jod_value = {{ttlview['jod']}};
+          {% else %}
+          var ils_value = 0;
+          var jod_value = 0;
+          var usd_value = 0;
+          {% endif %}
+
+          var totalSum = sumILS + (sumUSD * current_rate_usdValue ) + (sumJOD * current_rate_jodValue) ;
+          var rtotalSum = ils_value + (usd_value * current_rate_usdValue) + (jod_value * current_rate_jodValue);
+          document.getElementById("deposit_diff").value = (totalSum - rtotalSum).toFixed(2);
+          /*need to update the rate*/
+          document.getElementById('ttl_deposit').value = totalSum.toFixed(2);
+      }
+
+      var cashiersData = {{ cashiers | tojson | safe }};
+
+      $(document).ready(function() {
+        $('#cashier_name').on('change', function() {
+            var selectedCashier = $(this).val();
+            var selectedCashierId = $(this).find(':selected').data('cashier-number');
+            var cashierNumberInput = $('#cashier_number');
+
+            if (selectedCashierId !== undefined) {
+                // Update the cashier_number input
+                cashierNumberInput.val(selectedCashierId);
+
+            } else {
+                // Clear and disable the input if no matching cashier is found
+                cashierNumberInput.val('');
+
+            }
+        });
+    });
+    document.getElementById("exportButton").addEventListener("click", function () {
+      const table = document.getElementById("exportTable");
+      const sheet = XLSX.utils.table_to_sheet(table);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, sheet, "Sheet1");
+      XLSX.writeFile(wb, "table.xlsx");
+  });
+
+    </script>
+    <script language="Javascript">
+      document.onkeydown = function() {
+          if (event.keyCode == 13) {
+              if (document.activeElement.tagName.toLowerCase () != "textarea") {
+                        event.preventDefault();
+                        return false;
+                  }
+          }
+      }
+  </script>
+{% endblock %}

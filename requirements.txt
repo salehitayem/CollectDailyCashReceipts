@@ -1,0 +1,9 @@
+cs50
+flask
+flask-Session
+requests
+datetime
+werkzeug
+pytz
+uuid
+pyproject.toml

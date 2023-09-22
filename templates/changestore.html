@@ -1,0 +1,214 @@
+{% extends "adminlayout.html" %}
+
+{% block title %}
+    Change Store
+{% endblock %}
+
+{% block main %}
+
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .error-message {
+      color: #d9534f;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+
+  <div class="container">
+    <h2>Change Store</h2>
+    <form action="/changestore" method="post">
+      <div class="form-group">
+        <label for="currentStore">From Store:</label>
+        <select id="currentStore" name="currentStore" class="form-control">
+          <option disabled selected>Select Store</option>
+          {% for user in stores %}
+          <option value="{{ user['name'] }}">{{ user['name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <select id="username" name="username" class="form-control">
+          <option value="">Select Username</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="storeSelect">To Store:</label>
+        <select id="storeSelect" name="storeSelect" class="form-control">
+          <option disabled selected>Select Store</option>
+          {% if stores %}
+          {% for store in stores %}
+          <option>{{ store['name'] }}</option>
+          {% endfor %}
+          {% endif %}
+        </select>
+        <p id="storeError" class="error-message"></p>
+      </div>
+      <div class="form-group">
+        <button class="btn btn-primary" id="updateButton" type="submit" disabled>Update</button>
+      </div>
+    </form>
+  </div>
+  
+<script>
+  const existingNames = [
+      {% for name in names %}
+          '{{ name['username'] }}',
+      {% endfor %}
+  ];
+  const existingStores = [
+      {% for store in stores %}
+          '{{ store['name'] }}',
+      {% endfor %}
+  ];
+  const userNameInput = document.getElementById("username");
+  const pass1Input = document.getElementById("hash1");
+  const pass2Input = document.getElementById("hash2");
+  const storeInput = document.getElementById("storeSelect");
+  const nameError = document.getElementById("nameError");
+  const passError = document.getElementById("passError");
+  const passMatchError = document.getElementById("passMatchError");
+  const storeError = document.getElementById("storeError");
+  const createButton = document.getElementById("createButton");
+
+  function validateForm() {
+      const nameValue = userNameInput.value;
+      const pass1Value = pass1Input.value;
+      const pass2Value = pass2Input.value;
+      const storeValue = storeInput.value;
+
+      const validName = nameValue.length >= 3;
+      const validPass1 = pass1Value.length >= 8;
+      const validPass = pass1Value === pass2Value;
+
+      if (!validName) {
+          nameError.textContent = 'Name must be at least 3 characters.';
+      } else {
+          nameError.textContent = '';
+      }
+      if (!validPass1) {
+          passError.textContent = 'Password must be at least 8 characters.';
+      } else {
+          passError.textContent = '';
+      }
+      if (!validPass) {
+          passMatchError.textContent = 'Passwords do not match.';
+      } else {
+          passMatchError.textContent = '';
+      }
+
+      checkIfStoreExists(storeValue);
+      checkIfNameExists(nameValue);
+
+      createButton.disabled = !(validName && validPass1 && validPass) ||
+          nameError.textContent !== '' ||
+          passError.textContent !== '' ||
+          passMatchError.textContent !== '' ||
+          storeError.textContent !== '';
+
+      return (validName && validPass1 && validPass &&
+          nameError.textContent === '' &&
+          passError.textContent === '' &&
+          passMatchError.textContent === '' &&
+          storeError.textContent === '');
+  }
+
+  function checkIfStoreExists(storeValue) {
+      if (!existingStores.includes(storeValue)) {
+          storeError.textContent = 'Store does not exist.';
+      } else {
+          storeError.textContent = '';
+      }
+  }
+
+  function checkIfNameExists(nameValue) {
+      if (existingNames.includes(nameValue)) {
+          nameError.textContent = 'Username already exists.';
+      } else {
+          nameError.textContent = '';
+      }
+  }
+  const usersInfo = JSON.parse('{{ usersInfo | tojson | safe }}');
+
+  const currentStoreSelect = document.getElementById("currentStore");
+  const usernameSelect = document.getElementById("username");
+  const storeSelect = document.getElementById("storeSelect");
+  const updateButton = document.getElementById("updateButton");
+
+  // Function to check if all three select fields are selected
+  function checkFieldsSelected() {
+      return currentStoreSelect.value !== "" && usernameSelect.value !== "" && storeSelect.value !== "";
+  }
+
+  // Function to enable/disable the "Update" button based on field selection
+  function toggleUpdateButton() {
+      updateButton.disabled = !checkFieldsSelected();
+  }
+
+  // Add event listeners to the select fields
+  currentStoreSelect.addEventListener("change", () => {
+      populateUsernameSelect();
+      toggleUpdateButton();
+  });
+
+  usernameSelect.addEventListener("change", toggleUpdateButton);
+  storeSelect.addEventListener("change", toggleUpdateButton);
+
+  function populateUsernameSelect() {
+      const selectedName = currentStoreSelect.value;
+
+      // Clear the username select options
+      usernameSelect.innerHTML = '<option value="">Username</option>';
+
+      // Populate the username select options based on the selected name
+      if (selectedName) {
+          usersInfo.forEach(user => {
+              if (user.name === selectedName) {
+                  const option = document.createElement("option");
+                  option.value = user.username;
+                  option.text = user.username;
+                  usernameSelect.appendChild(option);
+              }
+          });
+      }
+  }
+
+</script>
+{% endblock %}

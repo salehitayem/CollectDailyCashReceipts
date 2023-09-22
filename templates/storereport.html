@@ -1,0 +1,269 @@
+{% extends 'adminlayout.html' %}
+
+{% block title %}
+Store Report
+{% endblock %}
+
+{% block main %}
+<style>
+  /* Style the table container */
+  #pdfContent {
+    margin: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Style the table wrapper with fixed height and scroll */
+  .table-wrapper {
+    max-height: 500px; /* Adjust the height as needed */
+    overflow-y: auto;
+  }
+
+  /* Style the table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  /* Style table headers */
+  th {
+    background-color: #f2f2f2;
+    text-align: center;
+    padding: 10px;
+  }
+
+  /* Style table rows */
+  tr {
+    border-bottom: 1px solid #ccc;
+  }
+
+  /* Style table cells */
+  td {
+    padding: 10px;
+  }
+
+  /* Style the "Download PDF" and "Download Excel" buttons */
+  .report-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .report-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+
+  .report-button:hover {
+    background-color: #0056b3;
+  }
+</style>
+
+<div id="pdfContent">
+  <div class="table-wrapper">
+    <table id="exportTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Store</th>
+          <th>Action Type</th>
+          <th>Table</th>
+          <th>Description</th>
+          <th>Action Date</th>
+          <th>Actual Action Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%if report%}
+        {%for i in report%}
+        <tr>
+          <td>{{i['username']}}</td>
+          <td>{{i['name']}}</td>
+          <td>{{i['movement_type']}}</td>
+          <td>{{i['m_table']}}</td>
+          <td>{{i['m_description']}}</td>
+          <td>{{i['movement_date']}}</td>
+          <td>{{i['timestamp']}}</td>
+        </tr>
+        {%endfor%}
+        {%endif%}
+      </tbody>
+    </table>
+  </div>
+  <div class="report-buttons">
+    <button class="report-button" id="generatePdfButton">Download PDF</button>
+    <button class="report-button" id="generateExcelButton">Download Excel</button>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
+
+
+
+<script>
+  
+  document.getElementById("generatePdfButton").addEventListener("click", function () {
+    const rows = [];
+    const table = document.getElementById("exportTable");
+
+    // Get the table headers
+    const headers = [];
+    for (const th of table.querySelectorAll("thead th")) {
+        headers.push({ text: th.textContent, style: "tableHeader" });
+    }
+
+    // Get the table rows
+    for (const tr of table.querySelectorAll("tbody tr")) {
+        const row = [];
+        for (const td of tr.querySelectorAll("td")) {
+            row.push(td.textContent);
+        }
+        rows.push(row);
+    }
+
+    // Load the image asynchronously
+    const getImageDataUrl = async (imageUrl) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const dataUrl = canvas.toDataURL("image/png");
+                resolve(dataUrl);
+            };
+            img.onerror = function () {
+                reject(new Error("Error loading the image."));
+            };
+            img.src = imageUrl;
+        });
+    };
+
+    // Use the loaded image in your PDF generation
+    getImageDataUrl('/static/logo.png') // Replace with the correct path to your image
+        .then((dataUrl) => {
+            const docDefinition = {
+                content: [
+                    {
+                        // Header with centered image, "User Report," and date
+                        columns: [
+                            {
+                                text: "Store Report",
+                                alignment: "left",
+                                fontSize: 16,
+                                color: "#009900", // Green color
+                                margin: [0, 20, 0, 0], // Adjust the margin to lower the text
+                            },
+                            {
+                                image: dataUrl, // Use the data URL for the image
+                                width: 200, // Adjust the width of the logo as needed
+                                alignment: "center", // Center the image
+                            },
+                            {
+                                text: new Date().toLocaleDateString(),
+                                alignment: "right",
+                                fontSize: 16,
+                                color: "#009900", // Green color
+                                margin: [0, 20, 0, 0], // Adjust the margin to lower the text
+                            },
+                        ],
+                        margin: [0, 0, 0, 10], // Adjust the margin as needed
+                    },
+                    {
+                        style: "table",
+                        table: {
+                            headerRows: 1,
+                            widths: ["auto", "auto", "auto", "auto", "auto", "auto", "auto"], // Adjust the column widths as needed
+                            body: [headers, ...rows],
+                        },
+                        layout: {
+                            fillColor: function (rowIndex, node, columnIndex) {
+                                // Apply different background colors to alternating rows
+                                return rowIndex % 2 === 0 ? "#f2f2f2" : null; // Light gray for even rows
+                            },
+                            hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 1 : 1,
+                            vLineWidth: (i, node) => 0,
+                            hLineColor: (i, node) => (i === 0 || i === node.table.body.length) ? "#000" : "#aaa",
+                        },
+                    },
+                ],
+                styles: {
+                    table: {
+                        margin: [0, 0, 0, 0], // Adjust the margin to remove any unnecessary space
+                    },
+                    tableHeader: {
+                        bold: true,
+                        fontSize: 12,
+                        color: "black",
+                        fillColor: "#f2f2f2", // Light gray background for headers
+                    },
+                },
+                pageSize: "A4", // Set the page size to A4
+                pageOrientation: "portrait", // Set the page orientation to portrait
+                pageMargins: [20, 20, 20, 20], // Adjust page margins as needed
+            };
+
+            pdfMake.createPdf(docDefinition).download("Store_report.pdf");
+        })
+        .catch((error) => {
+            console.error("Error loading the image:", error);
+        });
+});
+
+
+
+ document.getElementById("generateExcelButton").addEventListener("click", function () {
+    const rows = [];
+    const table = document.getElementById("exportTable");
+
+    // Get the table headers
+    const headers = [];
+    for (const th of table.querySelectorAll("thead th")) {
+        headers.push(th.textContent);
+    }
+
+    // Get the table rows
+    for (const tr of table.querySelectorAll("tbody tr")) {
+        const row = [];
+        for (const td of tr.querySelectorAll("td")) {
+            row.push(td.textContent);
+        }
+        rows.push(row);
+    }
+
+    // Add the headers as the first row in the rows array
+    rows.unshift(headers);
+
+    // Create a worksheet
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Create a workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Store_Report");
+
+    // Generate an Excel file
+    XLSX.writeFile(wb, "Store_report.xlsx");
+});
+
+</script>
+
+
+
+{% endblock %}

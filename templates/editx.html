@@ -1,0 +1,394 @@
+{% extends 'managerlayout.html' %}
+
+{% block title %}
+Edit X-Report
+{% endblock %}
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f5f9;
+    padding: 0px;
+  }
+
+  .table-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+
+  .table {
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+
+  }
+
+  .table th, .table td {
+    padding: 1px;
+    text-align: center;
+    border-bottom: 0px solid #ddd;
+    vertical-align: middle;
+  }
+
+  .table th {
+    background-color: #f8f9fa;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Adjust input field width */
+  input[type="number"] {
+    width: 100%;
+    text-align: center;
+
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .btn-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* Blue color scheme */
+  .table-container {
+    background-color: #e9f0f5;
+  }
+
+  .table {
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<div class="table-container">
+      <table class="table">
+        <tr>
+          <th></th>
+          <th>Rate</th>
+          <th></th>
+        </tr>
+          <tr>
+              <td>USD</td>
+              <td><input type="number" step ="any" {%if info%} value={{info[0]['usd']}} {%endif%}min="0" name="current_rate_usd" id="current_rate_usd" disabled oninput="validateForm()"></td>
+            </tr>
+          <tr>
+              <td>JOD</td>
+              <td><input type="number" step ="any" {%if info%} value={{info[0]['jod']}} {%endif%} min="0" name="current_rate_jod" id="current_rate_jod" disabled oninput="validateForm()"></td>
+          </tr>
+      </table>
+      <table class="table">
+        <tr>
+          <th>Update X-Report</th>
+        </tr>
+      </table>
+       <table class="table">
+        <tr>
+            <th>Store</th>
+            <th>{{store}}</th>
+            <th></th>
+          </tr>
+        <tr>
+          <th>User</th>
+          <th>{{uname[0]['username']}}</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th>Date</th>
+          <th>{%if info%} {{info[0]['cdate']}} {%endif%}</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th>Created By</th>
+          <th>{{dname}}</th>
+          <th></th>
+        </tr>
+      </table>
+  </div>
+  <table class="table table-hover" id="first-table">
+    <thead>
+    <tr>
+        <th scope="col">رقم الكاش</th>
+        <th scope="col">اسم الكاشير</th>
+        <th scope="col">رقم الكاشير</th>
+        <th scope="col">شيقل</th>
+        <th scope="col">دولار</th>
+        <th scope="col">دينار</th>
+        <th scope="col">فيزا-بنك فلسطين</th>
+        <th scope="col">credit</th>
+        <th scope="col">ايزي لايف</th>
+        <th scope="col">شيك</th>
+        <th scope="col">كوبون</th>
+        <th scope="col">جوال باي</th>
+        <th scope="col">فيرا - البنك العربي</th>
+        <th scope="col">المجموع الفعلي</th>
+        <th scope="col">X-report</th>
+        <th scope="col">الفارق- شيقل</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+        <!--should be inside input or label-->
+        {%if cashrep %}
+        {% for i in cashrep %}
+        <form action="/deletexrep" method="post"> 
+          <tr>
+              <input type="hidden" name="row_id" value="{{ i['id'] }}">
+              <td>{{i['cash_number']}}</td>
+              <td>{{i['cashier_name']}}</td>
+              <td>{{i['cashier_id']}}</td>
+              <td>{{i['ils']}}</td>
+              <td>{{i['usd']}}</td>
+              <td>{{i['jod']}}</td>
+              <td>{{i['visa_palestine']}}</td>
+              <td>{{i['credit']}}</td>
+              <td>{{i['easy_life']}}</td>
+              <td>{{i['bcheck']}}</td>
+              <td>{{i['coupon']}}</td>
+              <td>{{i['jawwal_pay']}}</td>
+              <td>{{i['visa_arabi']}}</td>
+              <td>{{i['ttl_ils']}}</td>
+              <td>{{i['x_report']}}</td>
+              <td>{{i['diff']}}</td>
+              <td><button class="btn btn-primary btn-sm" type="submit" id="DeleteButton">Delete</button>
+          </tr>
+          </form>
+    
+    <form action="/updatecashxreport" method="post">
+      <tr>
+        {%if cashrep %}
+        <td>{{cashrep[0]['cash_number']}}</td>
+        <td>{{cashrep[0]['cashier_name']}}</td>
+        <td>{{cashrep[0]['cashier_id']}}</td>
+        <input type="hidden" name="row_id" value="{{ cashrep[0]['id'] }}">
+        {% endif %}
+          <td><input autocomplete="off" value="{{i['ils']}}" autofocus style="width:90px" type="number" step="any" min="0" name="ils" id="ils" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['usd']}}" autofocus style="width:90px" type="number" step="any" min="0" name="usd" id="usd" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['jod']}}" autofocus style="width:90px" type="number" step="any" min="0"  name="jod" id="jod" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['visa_palestine']}}" autofocus style="width:90px" type="number" step="any" min="0" name="ps_visa" id="ps_visa" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['credit']}}" autofocus style="width:90px" type="number" step="any" min="0" name="credit" id="credit" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['easy_life']}}" autofocus style="width:90px" type="number" step="any" min="0" name="easylife" id="easylife" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['bcheck']}}" autofocus style="width:90px" type="number" step="any" min="0" name="bcheck" id="bcheck" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['coupon']}}" autofocus style="width:90px" type="number" step="any" min="0" name="coupon" id="coupon" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['jawwal_pay']}}" autofocus style="width:90px" type="number" step="any" min="0" name="jawwal_pay" id="jawwal_pay" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['visa_arabi']}}" autofocus style="width:90px" type="number" step="any" min="0" name="arabi_visa" id="arabi_visa" oninput="validateForm()"></td>
+          <td><input autocomplete="off"  autofocus style="width:90px" type="number" step="any" min="0" name="ttl_cash" id="ttl_cash" disabled oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['x_report']}}" autofocus style="width:90px" type="number" step="any" min="0" name="x_report" id="x_report" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="diff" id="diff" disabled oninput="validateForm()"></td>
+          <td><button class="btn btn-primary btn-sm" type="submit" id="addButton">Update</button>
+      {% endfor %}
+    {% endif %}
+      </tr>
+  <form>
+
+
+<script>
+  const inputils = document.getElementById("ils");
+  const inputusd = document.getElementById("usd");
+  const inputjod = document.getElementById("jod");
+  const inputps_visa = document.getElementById("ps_visa");
+  const inputcredit = document.getElementById("credit");
+  const inputeasylife = document.getElementById("easylife");
+  const inputbcheck = document.getElementById("bcheck");
+  const inputcoupon = document.getElementById("coupon");
+  const inputjawwal_pay = document.getElementById("jawwal_pay");
+  const inputarabi_visa = document.getElementById("arabi_visa");
+  const inputttl_cash = document.getElementById("ttl_cash");
+  const inputx_report = document.getElementById("x_report");
+  const inputdiff = document.getElementById("diff");
+  const ttl_deposit = document.getElementById("ttl_deposit");
+  const sum_rate_ils = document.getElementById("sum_rate_ils");
+  const sum_rate_usd = document.getElementById("sum_rate_usd");
+  const sum_rate_jod = document.getElementById("sum_rate_jod");
+
+  const current_rate_jod = document.getElementById("current_rate_jod");
+  const current_rate_usd = document.getElementById("current_rate_usd");
+
+  function update() {
+    ttl_deposit.value = sum_rate_ils.value;
+  }
+
+  function ilsForm() {
+    var rateInputs = document.querySelectorAll('input[id^="rate_ils_"]');
+
+    rateInputs.forEach(function(input) {
+        var rateValue = parseFloat(input.value);
+        var totalInputId = "ttl_" + input.id;
+        var totalInput = document.getElementById(totalInputId);
+
+        if (!isNaN(rateValue)) {
+            totalInput.value = (rateValue * parseFloat(input.parentElement.previousElementSibling.firstElementChild.value)).toFixed(2);
+        } else {
+            totalInput.value = "";
+        }
+    });
+
+    // Calculate and update the sum of all ttl_rate_ils fields
+    var sum = 0;
+    var totalRateInputs = document.querySelectorAll('input[id^="ttl_rate_ils_"]');
+
+    totalRateInputs.forEach(function(totalInput) {
+        var totalValue = parseFloat(totalInput.value);
+        if (!isNaN(totalValue)) {
+            sum += totalValue;
+        }
+    });
+
+    var sumInput = document.getElementById("sum_rate_ils");
+    sumInput.value = sum.toFixed(2);
+    ttlSum();
+}
+function usdForm() {
+var rateInputs = document.querySelectorAll('input[id^="rate_usd_"]');
+
+rateInputs.forEach(function(input) {
+    var rateValue = parseFloat(input.value);
+    var totalInputId = "ttl_" + input.id;
+    var totalInput = document.getElementById(totalInputId);
+
+    if (!isNaN(rateValue)) {
+        totalInput.value = (rateValue * parseFloat(input.parentElement.previousElementSibling.firstElementChild.value)).toFixed(2);
+    } else {
+        totalInput.value = "";
+    }
+});
+
+// Calculate and update the sum of all ttl_rate_usd fields
+var sum = 0;
+var totalRateInputs = document.querySelectorAll('input[id^="ttl_rate_usd_"]');
+
+totalRateInputs.forEach(function(totalInput) {
+    var totalValue = parseFloat(totalInput.value);
+    if (!isNaN(totalValue)) {
+        sum += totalValue;
+    }
+});
+
+var sumInput = document.getElementById("sum_rate_usd");
+sumInput.value = sum.toFixed(2);
+ttlSum();
+}
+function jodForm() {
+var rateInputs = document.querySelectorAll('input[id^="rate_jod_"]');
+
+rateInputs.forEach(function(input) {
+  var rateValue = parseFloat(input.value);
+  var totalInputId = "ttl_" + input.id;
+  var totalInput = document.getElementById(totalInputId);
+
+  if (!isNaN(rateValue)) {
+      totalInput.value = (rateValue * parseFloat(input.parentElement.previousElementSibling.firstElementChild.value)).toFixed(2);
+  } else {
+      totalInput.value = "";
+  }
+});
+
+// Calculate and update the sum of all ttl_rate_jod fields
+var sum = 0;
+var totalRateInputs = document.querySelectorAll('input[id^="ttl_rate_jod_"]');
+
+totalRateInputs.forEach(function(totalInput) {
+  var totalValue = parseFloat(totalInput.value);
+  if (!isNaN(totalValue)) {
+      sum += totalValue;
+  }
+});
+
+var sumInput = document.getElementById("sum_rate_jod");
+sumInput.value = sum.toFixed(2);
+ttlSum();
+}
+function validateForm() {
+  const inputilsValue = parseFloat(inputils.value) || 0;
+  const inputusdValue = parseFloat(inputusd.value) || 0;
+  const inputjodValue = parseFloat(inputjod.value) || 0;
+  const inputps_visaValue = parseFloat(inputps_visa.value) || 0;
+  const inputcreditValue = parseFloat(inputcredit.value) || 0;
+  const inputeasylifeValue = parseFloat(inputeasylife.value) || 0;
+  const inputbcheckValue = parseFloat(inputbcheck.value) || 0;
+  const inputcouponValue = parseFloat(inputcoupon.value) || 0;
+  const inputjawwal_payValue = parseFloat(inputjawwal_pay.value) || 0;
+  const inputarabi_visaValue = parseFloat(inputarabi_visa.value) || 0;
+  const inputx_reportValue = parseFloat(inputx_report.value) || 0;
+  const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
+  const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
+  const sum =
+      inputilsValue +
+      (inputusdValue * current_rate_usdValue) +
+      (inputjodValue * current_rate_jodValue) +
+      inputps_visaValue +
+      inputcreditValue +
+      inputeasylifeValue +
+      inputbcheckValue +
+      inputcouponValue +
+      inputjawwal_payValue +
+      inputarabi_visaValue;
+
+  inputttl_cash.value = sum.toFixed(2);
+
+  const diff =
+      sum-
+      inputx_reportValue;
+
+  inputdiffValue = inputdiff.value = diff.toFixed(2);
+}
+function ttlSum() {
+const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
+const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
+var sumILS = parseFloat(document.getElementById('sum_rate_ils').value) || 0;
+var sumUSD = parseFloat(document.getElementById('sum_rate_usd').value) || 0;
+var sumJOD = parseFloat(document.getElementById('sum_rate_jod').value) || 0;
+
+var totalSum = sumILS + (sumUSD * current_rate_usdValue ) + (sumJOD * current_rate_jodValue) ;
+/*need to update the rate*/
+document.getElementById('ttl_deposit').value = totalSum.toFixed(2);
+}
+
+var cashiersData = {{ cashiers | tojson | safe }};
+
+$(document).ready(function() {
+$('#cashier_name').on('change', function() {
+  var selectedCashier = $(this).val();
+  var selectedCashierId = $(this).find(':selected').data('cashier-number');
+  var cashierNumberInput = $('#cashier_number');
+
+  if (selectedCashierId !== undefined) {
+      // Update the cashier_number input
+      cashierNumberInput.val(selectedCashierId);
+
+  } else {
+      // Clear and disable the input if no matching cashier is found
+      cashierNumberInput.val('');
+
+  }
+});
+});
+
+</script>
+
+<script language="Javascript">
+  document.onkeydown = function() {
+      if (event.keyCode == 13) {
+          if (document.activeElement.tagName.toLowerCase () != "textarea") {
+                    event.preventDefault();
+                    return false;
+              }
+      }
+  }
+</script>
+{% endblock %}

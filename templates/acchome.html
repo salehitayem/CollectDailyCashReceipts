@@ -1,0 +1,85 @@
+{% extends 'acclayout.html' %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block main %}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  h1 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .styled-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f5f5f5;
+    font-size: 16px;
+    color: #555;
+  }
+
+  .mb-3 {
+    margin-bottom: 20px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+</style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Select Date and Store</h1>
+    <form action="/report" method="post">
+      <div class="mb-3">
+        <input type="date" id="selected_date" name="selected_date" class="styled-select">
+      </div>
+      <div class="mb-3">
+        <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
+          <option disabled selected>Select Store</option>
+          {% if stores %}
+          {% for store in stores %}
+          {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+          <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit" id="addButton">Select</button>
+    </form>
+  </div>
+</body>
+{% endblock %}

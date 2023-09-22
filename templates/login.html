@@ -1,0 +1,26 @@
+{% extends "adminlayout.html" %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block main %}
+    <form action="/login" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
+            {% if error_username %}
+                <p class="text-danger">{{ error_username }}</p>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" id="hash" name="hash" placeholder="Password" type="password">
+            {% if error_password %}
+                <p class="text-danger">{{ error_password }}</p>
+            {% endif %}
+        </div>
+        {% if error_general %}
+            <p class="text-danger">{{ error_general }}</p>
+        {% endif %}
+        <button class="btn btn-primary" type="submit">Log In</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'adminlayout.html' %}
+
+{% block title %}
+Add Cashier
+{% endblock %}
+
+{% block main %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .error-message {
+      color: #d9534f;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+
+  <div class="container">
+    <h2>Add Cashier</h2>
+    <form action="/addcashier" method="post" onsubmit="return validateForm()">
+      <div class="form-group">
+        <label for="cashiernumber">Cashier Number:</label>
+        <input autocomplete="off" autofocus class="form-control" id="cashiernumber" name="cashiernumber" placeholder="Enter Cashier Number" min="0" type="number" oninput="validateForm()">
+        <p id="numberError" class="error-message"></p>
+      </div>
+      <div class="form-group">
+        <label for="cashiername">Cashier Name:</label>
+        <input class="form-control" autocomplete="off" autofocus id="cashiername" name="cashiername" placeholder="Enter Cashier Name" type="text" oninput="validateForm()">
+        <p id="nameError" class="error-message"></p>
+      </div>
+      <div class="form-group">
+        <label for="storeSelect">Select Store:</label>
+        <select id="storeSelect" name="store" class="form-select"  oninput="validateForm()">
+          <option disabled selected>Select Store</option>
+          {% if stores %}
+            {% for store in stores %}
+              {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </select>
+        <p id="storeError" class="error-message"></p>
+      </div>
+      <button class="btn btn-primary" type="submit" id="addButton" disabled>Add</button>
+      <p id="existenceError" class="error-message"></p> <!-- Display existence error -->
+    </form>
+  </div>
+    <script>
+        const existingCashiers = [
+            {% for cashier in existing_cashiers %}
+                { id: {{ cashier['id'] }}, name: '{{ cashier['name'] }}' },
+            {% endfor %}
+        ];
+
+        const addButton = document.getElementById('addButton');
+        const cashierNumberInput = document.getElementById('cashiernumber');
+        const cashierNameInput = document.getElementById('cashiername');
+        const numberError = document.getElementById('numberError');
+        const nameError = document.getElementById('nameError');
+        const storeError = document.getElementById('storeError'); // Add this line
+        const existenceError = document.getElementById('existenceError');
+
+        function validateForm() {
+            const numberValue = cashierNumberInput.value;
+            const nameValue = cashierNameInput.value;
+            const selectedStore = document.getElementById('storeSelect').value;
+
+            // Check for validation conditions for both inputs
+            const validNumber = (numberValue >= 0);
+            const validName = (nameValue.length >= 3);
+            const validStore = (selectedStore !== "admin" && selectedStore !== "accounting" && selectedStore !== "Select Store");
+
+            if (!validNumber) {
+                numberError.textContent = 'Invalid number';
+            } else {
+                numberError.textContent = '';
+            }
+
+            if (!validName) {
+                nameError.textContent = 'Name must be at least 3 characters';
+            } else {
+                nameError.textContent = '';
+            }
+
+            if (!validStore) {
+                storeError.textContent = 'Please select a valid store';
+            } else {
+                storeError.textContent = '';
+            }
+
+            checkIfNameAndIdExist(numberValue, nameValue);
+
+            addButton.disabled = !(validNumber && validName && validStore) || existenceError.textContent !== '';
+
+            return (validNumber && validName && validStore && existenceError.textContent === '');
+        }
+
+
+        function checkIfNameAndIdExist(numberValue, nameValue) {
+            const exists = existingCashiers.some(cashier => cashier.id === Number(numberValue) || cashier.name === nameValue);
+
+            if (exists) {
+                existenceError.textContent = 'Name or ID already exists';
+            } else {
+                existenceError.textContent = ''; // Clear existence error
+            }
+        }
+    </script>
+{% endblock %}

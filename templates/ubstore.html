@@ -1,0 +1,287 @@
+{% extends 'adminlayout.html' %}
+
+{% block title %}
+Users View
+{% endblock %}
+
+{% block main %}
+<style>
+  /* Style the table container */
+  #pdfContent {
+    margin: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Style the table wrapper with fixed height and scroll */
+  .table-wrapper {
+    max-height: 500px; /* Adjust the height as needed */
+    overflow-y: auto;
+  }
+
+  /* Style the table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  /* Style table headers */
+  th {
+    background-color: #f2f2f2;
+    text-align: center;
+    padding: 10px;
+  }
+
+  /* Style table rows */
+  tr {
+    border-bottom: 1px solid #ccc;
+  }
+
+  /* Style table cells */
+  td {
+    padding: 10px;
+  }
+
+  /* Style the "Download PDF" and "Download Excel" buttons */
+  .report-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .report-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+
+  .report-button:hover {
+    background-color: #0056b3;
+  }
+</style>
+
+<div id="pdfContent">
+  <div class="table-wrapper">
+    <table class="table table-hover" id="exportTable">
+      <thead>
+        <tr>
+          <th scope="col">Line</th>
+            <th scope="col">Username</th>
+            <th scope="col">Store</th>
+            <th scope="col">Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if data %}
+          {% for i in data %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ i['username'] }}</td>
+              <td>{{ i['store_name'] }}</td>
+              {%if i['id'] == 99%}
+              <td>Accounter</td>
+              {%elif i['id'] == 0%}
+              <td>Admin</td>
+              {%elif i['id'] == 100%}
+              <td>Supervisor</td>
+              {%else%}
+              <td>Manager</td>
+              {%endif%}
+            </tr>
+          {% endfor %}
+        {% endif %}
+        
+        {% set counter = data|length if data else 0 %}
+      
+        {% if cashiers %}
+          {% for i in cashiers %}
+            <tr>
+              <td>{{ counter + loop.index }}</td>
+              <td>{{ i['name'] }}</td>
+              <td>{{ i['store_name'] }}</td>
+              <td>Cashier</td>
+            </tr>
+            {% set counter = counter + 1 %}
+          {% endfor %}
+        {% endif %}
+      </tbody>
+      
+            
+    </table>
+  </div>
+
+  <div class="report-buttons">
+    <button class="report-button" id="generatePdfButton">Download PDF</button>
+    <button class="report-button" id="generateExcelButton">Download Excel</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
+
+<script>
+  document.getElementById("generatePdfButton").addEventListener("click", function () {
+    const rows = [];
+    const table = document.getElementById("exportTable");
+
+    // Get the table headers
+    const headers = [];
+    for (const th of table.querySelectorAll("thead th")) {
+        headers.push({ text: th.textContent, style: "tableHeader", alignment: 'center' }); // Center-align the text
+    }
+
+    // Get the table rows
+    for (const tr of table.querySelectorAll("tbody tr")) {
+      const row = [];
+      const tds = tr.querySelectorAll("td"); // Get all td elements in the row
+      for (const td of tds) {
+          row.push({ text: td.textContent, alignment: 'center' }); // Center-align the text
+      }
+      rows.push(row);
+  }
+    // Load the image asynchronously
+    const getImageDataUrl = async (imageUrl) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const dataUrl = canvas.toDataURL("image/png");
+                resolve(dataUrl);
+            };
+            img.onerror = function () {
+                reject(new Error("Error loading the image."));
+            };
+            img.src = imageUrl;
+        });
+    };
+
+    // Use the loaded image in your PDF generation
+    getImageDataUrl('/static/logo.png') // Replace with the correct path to your image
+        .then((dataUrl) => {
+            const docDefinition = {
+                content: [
+                    {
+                        // Header with centered image, "User Report," and date
+                        columns: [
+                            {
+                                text: "Users View",
+                                alignment: "left",
+                                fontSize: 16,
+                                color: "#009900", // Green color
+                                margin: [0, 30, 0, 0], // Adjust the margin to lower the text
+                            },
+                            {
+                                image: dataUrl, // Use the data URL for the image
+                                width: 200, // Adjust the width of the logo as needed
+                                alignment: "center", // Center the image
+                            },
+                            {
+                                text: new Date().toLocaleDateString(),
+                                alignment: "right",
+                                fontSize: 16,
+                                color: "#009900", // Green color
+                                margin: [0, 30, 0, 0], // Adjust the margin to lower the text
+                            },
+                        ],
+                        margin: [0, 0, 0, 10], // Adjust the margin as needed
+                    },
+                    {
+                        style: "table",
+                        table: {
+                            headerRows: 1,
+                            widths: ["*", "*", "*", "*"], // Adjust the column widths as needed (Use '*' to distribute evenly)
+                            body: [headers, ...rows],
+                        },
+                        layout: {
+                            fillColor: function (rowIndex, node, columnIndex) {
+                                // Apply different background colors to alternating rows
+                                return rowIndex % 2 === 0 ? "#f2f2f2" : null; // Light gray for even rows
+                            },
+                            hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 1 : 1,
+                            vLineWidth: (i, node) => 0,
+                            hLineColor: (i, node) => (i === 0 || i === node.table.body.length) ? "#000" : "#aaa",
+                        },
+                    },
+                ],
+                styles: {
+                    table: {
+                        margin: [0, 0, 0, 0], // Adjust the margin to remove any unnecessary space
+                    },
+                    tableHeader: {
+                        bold: true,
+                        fontSize: 12,
+                        color: "black",
+                        fillColor: "#f2f2f2", // Light gray background for headers
+                    },
+                },
+                pageSize: "A4", // Set the page size to A4
+                pageOrientation: "portrait", // Set the page orientation to portrait
+                pageMargins: [20, 20, 20, 20], // Adjust page margins as needed
+            };
+
+            pdfMake.createPdf(docDefinition).download("User_View.pdf");
+        })
+        .catch((error) => {
+            console.error("Error loading the image:", error);
+        });
+  });
+</script>
+
+
+
+
+<script>
+  document.getElementById("generateExcelButton").addEventListener("click", function () {
+    const rows = [];
+    const table = document.getElementById("exportTable");
+  
+    // Get the table headers
+    const headers = [];
+    for (const th of table.querySelectorAll("thead th")) {
+      headers.push(th.textContent);
+    }
+  
+    // Get the table rows
+    const rowsData = [];
+    for (const tr of table.querySelectorAll("tbody tr")) {
+      const rowData = [];
+      for (const td of tr.querySelectorAll("td")) {
+        rowData.push(td.textContent);
+      }
+      rowsData.push(rowData);
+    }
+
+    // Add the headers and data to the rows array
+    rows.push(headers);
+    rows.push(...rowsData);
+  
+    // Create a worksheet
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+  
+    // Create a workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "User_Report");
+  
+    // Generate an Excel file
+    XLSX.writeFile(wb, "User_report.xlsx");
+  });
+</script>
+
+
+{% endblock %}

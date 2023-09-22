@@ -1,0 +1,264 @@
+{% extends 'managerlayout.html' %}
+
+{% block title %}
+Edit X-Report
+{% endblock %}
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f5f9;
+    padding: 0px;
+  }
+
+  .table-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+
+  .table {
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+
+  }
+
+  .table th, .table td {
+    padding: 1px;
+    text-align: center;
+    border-bottom: 0px solid #ddd;
+    vertical-align: middle;
+  }
+
+  .table th {
+    background-color: #f8f9fa;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Adjust input field width */
+  input[type="number"] {
+    width: 100%;
+    text-align: center;
+
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .btn-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* Blue color scheme */
+  .table-container {
+    background-color: #e9f0f5;
+  }
+
+  .table {
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<div class="table-container">
+      <table class="table">
+
+        <tr>
+          <th></th>
+          <th>Rate</th>
+          <th></th>
+        </tr>
+          <tr>
+              <td>USD</td>
+              <td><input type="number" step ="any" {%if info%} value={{info[0]['usd']}} {%endif%}min="0" name="current_rate_usd" id="current_rate_usd" disabled oninput="validateForm()"></td>
+            </tr>
+          <tr>
+              <td>JOD</td>
+              <td><input type="number" step ="any" {%if info%} value={{info[0]['jod']}} {%endif%} min="0" name="current_rate_jod" id="current_rate_jod" disabled oninput="validateForm()"></td>
+          </tr>
+      </table>
+      <table class="table">
+        <tr>
+          <th>Update Z-Report</th>
+        </tr>
+      </table>
+       <table class="table">
+        <tr>
+            <th>Store</th>
+            <th>{{store}}</th>
+            <th></th>
+          </tr>
+        <tr>
+          <th>User</th>
+          <th>{{uname[0]['username']}}</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th>Date</th>
+          <th>{%if info%} {{info[0]['cdate']}} {%endif%}</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th>Created By</th>
+          <th>{{dname}}</th>
+          <th></th>
+        </tr>
+      </table>
+  </div>
+  <table class="table table-hover" id="first-table">
+    <thead>
+      <tr>
+        <th scope="col" style="width:23px"></th>
+        <th scope="col">اسم التقرير</th>
+        <th scope="col">رقم الكاش</th>
+        <th scope="col">شيقل</th>
+        <th scope="col">دولار</th>
+        <th scope="col">دينار</th>
+        <th scope="col">فيزا-بنك فلسطين</th>
+        <th scope="col">credit</th>
+        <th scope="col">ايزي لايف</th>
+        <th scope="col">شيك</th>
+        <th scope="col">كوبون</th>
+        <th scope="col">جوال باي</th>
+        <th scope="col">فيرا - البنك العربي</th>
+        <th scope="col">مجموع Xreport</th>
+        <th scope="col">Z-report</th>
+        <th scope="col">الفارق- شيقل</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+        <!--should be inside input or label-->
+    {%if cashzrep %}
+      {% for i in cashzrep %}
+        <form action="/deletezrep" method = "post">
+          <input type="hidden" name="row_id" value="{{ i['id'] }}">
+          <tr>
+            <th scope="col" style="width:90px"></th>
+            <td>Z Report Cash<td>
+            {{i['cash_number']}}
+            <td>{{i['ils']}}</td>
+            <td>{{i['usd']}}</td>
+            <td>{{i['jod']}}</td>
+            <td>{{i['visa_palestine']}}</td>
+            <td>{{i['credit']}}</td>
+            <td>{{i['easy_life']}}</td>
+            <td>{{i['bcheck']}}</td>
+            <td>{{i['coupon']}}</td>
+            <td>{{i['jawwal_pay']}}</td>
+            <td>{{i['visa_arabi']}}</td>
+            <td>{{i['ttl_ils']}}</td>
+            <td>{{i['ttl_x_report']}}</td>
+            <td>{{i['diff']}}</td>
+            <td><button class="btn btn-primary btn-sm" type="submit" id="DeleteButton">Delete</button><td>
+          </tr>
+        </form>
+      {% endfor %}
+    {% endif %}
+      {%if cashzrep %}
+        {% for i in cashzrep %}
+              <form action="/cashzrep2" method = "post">
+                
+                <tr>
+                  <th scope="col" style="width:23px"><input type="hidden" name="row_id" id="row_id" value="{{ i['id'] }}"></th>
+                  <th scope="col" style="width:90px">Z Report Cash</th>
+                  <th scope="col">{{ i["cash_number"] }}</th>
+                  <input type="hidden" name="row_cash_number" id="row_cash_number" value="{{ i["cash_number"] }}">
+                  <td><input autocomplete="off" value="{{i['ils']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zils_{{ i["cash_number"] }}" id="zils_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['usd']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zusd_{{ i["cash_number"] }}" id="zusd_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['jod']}}" autofocus style="width:90px" type="number" step="any" min="0"  name="zjod_{{ i["cash_number"] }}" id="zjod_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['visa_palestine']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zps_visa_{{ i["cash_number"] }}" id="zps_visa_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['credit']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zcredit_{{ i["cash_number"] }}" id="zcredit_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['easy_life']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zeasylife_{{ i["cash_number"] }}" id="zeasylife_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['bcheck']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zbcheck_{{ i["cash_number"] }}" id="zbcheck_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['coupon']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zcoupon_{{ i["cash_number"] }}" id="zcoupon_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['jawwal_pay']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zjawwal_pay_{{ i["cash_number"] }}" id="zjawwal_pay_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <td><input autocomplete="off" value="{{i['visa_arabi']}}" autofocus style="width:90px" type="number" step="any" min="0" name="zarabi_visa_{{ i["cash_number"] }}" id="zarabi_visa_{{ i["cash_number"] }}" oninput="zvalidateForm({{ i["cash_number"] }})"></td>
+                  <th><input type="number" style="width:90px" min="0" name="zttl_cash_{{ i["cash_number"] }}" id="zttl_cash_{{ i["cash_number"] }}" value="" disabled oninput="zvalidateForm({{ i["cash_number"] }})"></th>
+                  <th><input type="number" style="width:90px" min="0" name="z_report_{{ i["cash_number"] }}" id="z_report_{{ i["cash_number"] }}" value="{{i['ttl_x_report']}}" disabled oninput="zvalidateForm({{ i["cash_number"] }})"></th>
+                  <th><input type="number" style="width:90px" min="0" name="zdiff_{{ i["cash_number"] }}" id="zdiff_{{ i["cash_number"] }}" disabled oninput="zvalidateForm({{ i["cash_number"] }})"></th>
+                  <td><button class="btn btn-primary btn-sm" type="submit" id="addButton">Update</button></td>
+                </tr>
+              </form>
+          {% endfor %}
+        {% endif %}
+    </tbody>
+  </table>
+  <script>
+    function zvalidateForm(rowNumber) {
+          
+      const zinputils = document.getElementById("zils_" + rowNumber);
+      const zinputusd = document.getElementById("zusd_" + rowNumber);
+      const zinputjod = document.getElementById("zjod_" + rowNumber);
+      const zinputps_visa = document.getElementById("zps_visa_" + rowNumber);
+      const zinputcredit = document.getElementById("zcredit_" + rowNumber);
+      const zinputeasylife = document.getElementById("zeasylife_" + rowNumber);
+      const zinputbcheck = document.getElementById("zbcheck_" + rowNumber);
+      const zinputcoupon = document.getElementById("zcoupon_" + rowNumber);
+      const zinputjawwal_pay = document.getElementById("zjawwal_pay_" + rowNumber);
+      const zinputarabi_visa = document.getElementById("zarabi_visa_" + rowNumber);
+      const zinputttl_cash = document.getElementById("zttl_cash_" + rowNumber);
+      const zinputx_report = document.getElementById("z_report_" + rowNumber);
+      const zinputdiff = document.getElementById("zdiff_" + rowNumber);
+      const inputilsValue = parseFloat(zinputils.value) || 0;
+      const inputusdValue = parseFloat(zinputusd.value) || 0;
+      const inputjodValue = parseFloat(zinputjod.value) || 0;
+      const inputps_visaValue = parseFloat(zinputps_visa.value) || 0;
+      const inputcreditValue = parseFloat(zinputcredit.value) || 0;
+      const inputeasylifeValue = parseFloat(zinputeasylife.value) || 0;
+      const inputbcheckValue = parseFloat(zinputbcheck.value) || 0;
+      const inputcouponValue = parseFloat(zinputcoupon.value) || 0;
+      const inputjawwal_payValue = parseFloat(zinputjawwal_pay.value) || 0;
+      const inputarabi_visaValue = parseFloat(zinputarabi_visa.value) || 0;
+      const inputx_reportValue = parseFloat(zinputx_report.value) || 0;
+
+      const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
+      const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
+      const sum =
+          inputilsValue +
+          (inputusdValue * current_rate_usdValue) +
+          (inputjodValue * current_rate_jodValue) +
+          inputps_visaValue +
+          inputcreditValue +
+          inputeasylifeValue +
+          inputbcheckValue +
+          inputcouponValue +
+          inputjawwal_payValue +
+          inputarabi_visaValue;
+
+      zinputttl_cash.value = sum.toFixed(2);
+
+      const diff =
+          sum-
+          inputx_reportValue;
+
+      zinputdiffValue = zinputdiff.value = diff.toFixed(2);
+  }
+  </script>
+  <script language="Javascript">
+    document.onkeydown = function() {
+        if (event.keyCode == 13) {
+            if (document.activeElement.tagName.toLowerCase () != "textarea") {
+                      event.preventDefault();
+                      return false;
+                }
+        }
+    }
+</script>
+{% endblock %}

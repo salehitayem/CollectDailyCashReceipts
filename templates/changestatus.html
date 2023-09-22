@@ -1,0 +1,243 @@
+{% extends "adminlayout.html" %}
+
+{% block title %}
+    Change Cashier Status
+{% endblock %}
+
+{% block main %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    h2 {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .form-section {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .form-container {
+        width: 48%;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    select,
+    button {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    select:focus,
+    button:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+
+    button {
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+
+<body>
+    <h2>Managers and Accountants</h2>
+    <div class="container">
+        <div class="form-section">
+            <div class="form-container">
+                <h1>Disable</h1>
+                <!-- Manager/Accountant Disable Form -->
+                <form action="/changestatus" method="post">
+                    <!-- Manager/Accountant Disable Form Fields -->
+                    <div class="form-group">
+                        <label for="currentStoreDisable">From Store</label>
+                        <select id="currentStoreDisable" name="currentStore" class="form-control">
+                            <option value="" disabled selected>Select Store</option>
+                            {% for store in stores %}
+                            <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usernameDisable">Username</label>
+                        <select id="usernameDisable" name="username" class="form-control">
+                            <option value="">Select Username</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="disableButton" type="submit" name="action" value="disablem" disabled>Disable</button>
+                    </div>
+                </form>
+            </div>
+            <div class="form-container">
+                <h1>Enable</h1>
+                <!-- Manager/Accountant Enable Form -->
+                <form action="/changestatus" method="post">
+                    <!-- Manager/Accountant Enable Form Fields -->
+                    <div class="form-group">
+                        <label for="currentStoreEnable">From Store</label>
+                        <select id="currentStoreEnable" name="currentStore" class="form-control">
+                            <option value="" disabled selected>Select Store</option>
+                            {% for store in stores %}
+                            <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usernameEnable">Username</label>
+                        <select id="usernameEnable" name="username" class="form-control">
+                            <option value="">Select Username</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="enableButton" type="submit" name="action" value="enablem" disabled>Enable</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <h2>Cashiers</h2>
+    <div class="container">
+        <div class="form-section">
+            <div class="form-container">
+                <h1>Disable</h1>
+                <!-- Cashier Disable Form -->
+                <form action="/changestatus" method="post">
+                    <!-- Cashier Disable Form Fields -->
+                    <div class="form-group">
+                        <label for="currentStoreDisableCashier">From Store</label>
+                        <select id="currentStoreDisableCashier" name="currentStore" class="form-control">
+                            <option value="" disabled selected>Select Store</option>
+                            {% for store in stores %}
+                            <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usernameDisableCashier">Username</label>
+                        <select id="usernameDisableCashier" name="username" class="form-control">
+                            <option value="">Select Username</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="disableButtonCashier" type="submit" name="action" value="disableCashier" disabled>Disable</button>
+                    </div>
+                </form>
+            </div>
+            <div class="form-container">
+                <h1>Enable</h1>
+                <!-- Cashier Enable Form -->
+                <form action="/changestatus" method="post">
+                    <!-- Cashier Enable Form Fields -->
+                    <div class="form-group">
+                        <label for="currentStoreEnableCashier">From Store</label>
+                        <select id="currentStoreEnableCashier" name="currentStore" class="form-control">
+                            <option value="" disabled selected>Select Store</option>
+                            {% for store in stores %}
+                            <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usernameEnableCashier">Username</label>
+                        <select id="usernameEnableCashier" name="username" class="form-control">
+                            <option value="">Select Username</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="enableButtonCashier" type="submit" name="action" value="enableCashier" disabled>Enable</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const stores = JSON.parse('{{ stores | tojson | safe}}');
+            const userInfo = JSON.parse('{{ userInfo | tojson | safe}}');
+            const cashiersInfo = JSON.parse('{{ cashiersInfo | tojson | safe}}');
+            
+            function populateUsernameSelect(storeSelectId, usernameSelectId, disableStatus, isCashiersForm) {
+                const storeSelect = document.getElementById(storeSelectId);
+                const usernameSelect = document.getElementById(usernameSelectId);
+                
+                storeSelect.addEventListener('change', function () {
+                    const selectedStore = storeSelect.value;
+                    usernameSelect.innerHTML = '<option value="">Select Username</option>';
+                    
+                    // Use the appropriate data source based on the form type
+                    const data = isCashiersForm ? cashiersInfo : userInfo;
+                    
+                    const filteredUsers = data.filter(user => user.name === selectedStore && user.disable === disableStatus);
+                    
+                    filteredUsers.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.username;
+                        option.textContent = user.username;
+                        usernameSelect.appendChild(option);
+                    });
+                    
+                    const button = document.getElementById(`${disableStatus === 0 ? 'disable' : 'enable'}Button${isCashiersForm ? 'Cashier' : ''}`);
+                    button.disabled = filteredUsers.length === 0;
+                });
+            }
+            
+            populateUsernameSelect('currentStoreDisable', 'usernameDisable', 0, false);
+            populateUsernameSelect('currentStoreEnable', 'usernameEnable', 1, false);
+            populateUsernameSelect('currentStoreDisableCashier', 'usernameDisableCashier', 0, true);
+            populateUsernameSelect('currentStoreEnableCashier', 'usernameEnableCashier', 1, true);
+        });
+    </script>
+    
+    
+    
+    
+</body>
+
+{% endblock %}

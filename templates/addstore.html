@@ -1,0 +1,122 @@
+{% extends 'adminlayout.html' %}
+
+{% block title %}
+Add Store
+{% endblock %}
+
+{% block main %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .error-message {
+      color: #d9534f;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+
+  <div class="container">
+    <h2>Add Store</h2>
+    <form action="/addstore" method="post">
+      <div class="form-group">
+        <label for="storenumber">Store Number:</label>
+        <input autocomplete="off" autofocus class="form-control" id="storenumber" name="storenumber" placeholder="Enter Store Number" min="0" type="number" oninput="validateForm()">
+        <p id="numberError" class="error-message"></p>
+      </div>
+      <div class="form-group">
+        <label for="storename">Store Name:</label>
+        <input class="form-control" autocomplete="off" autofocus id="storename" name="storename" placeholder="Enter Store Name" type="text" oninput="validateForm()">
+        <p id="nameError" class="error-message"></p>
+      </div>
+      <button class="btn btn-primary" id="addButton" disabled type="submit">Add</button>
+      <p id="existenceError" class="error-message"></p>
+    </form>
+  </div>
+
+    
+    <script>
+        const existingStores = [
+            {% for store in stores %}
+                { id: {{ store['id'] }}, name: '{{ store['name'] }}' },
+            {% endfor %}
+        ];
+
+        const addButton = document.getElementById('addButton');
+        const storeNumberInput = document.getElementById('storenumber'); // Corrected variable name
+        const numberError = document.getElementById('numberError'); // Corrected variable name
+        const storeNameInput = document.getElementById('storename');
+        const nameError = document.getElementById('nameError'); // Corrected variable name
+        const existenceError = document.getElementById('existenceError'); // Corrected existence name,id
+
+        function validateForm() {
+            const numberValue = storeNumberInput.value; // Corrected variable name
+            const nameValue = storeNameInput.value;
+
+            // check validation conditions for both input
+            const validNumber = (numberValue >= 0);
+            const validName = (nameValue.length >= 3); // Corrected validation condition
+
+            if (!validNumber) {
+                numberError.textContent = 'Invalid number';
+            } else {
+                numberError.textContent = '';
+            }
+            if (!validName) {
+                nameError.textContent = 'Name must be at least 3 characters';
+            } else {
+                nameError.textContent = '';
+            }
+
+            checkIfNameAndIdExist(numberValue, nameValue);
+
+            addButton.disabled = !(validNumber && validName) || existenceError.textContent !== '';
+
+            return (validNumber && validName && existenceError.textContent === '');
+        }
+
+        function checkIfNameAndIdExist(numberValue, nameValue) {
+            const exists = existingStores.some(store => store.id === Number(numberValue) || store.name === nameValue);
+
+            if (exists) {
+                existenceError.textContent = 'Name or Number already exists';
+            } else {
+                existenceError.textContent = '';
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,679 @@
+{% extends 'acclayout.html' %}
+
+{% block title %}
+
+Report
+
+{% endblock %}
+
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f5f9;
+    padding: 0px;
+  }
+
+  .table-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+
+  .table {
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+
+  }
+
+  .table th, .table td {
+    padding: 1px;
+    text-align: center;
+    border-bottom: 0px solid #ddd;
+    vertical-align: middle;
+  }
+
+  .table th {
+    background-color: #f8f9fa;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Adjust input field width */
+  input[type="number"] {
+    width: 100%;
+    text-align: center;
+
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .btn-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* Blue color scheme */
+  .table-container {
+    background-color: #e9f0f5;
+  }
+
+  .table {
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap; /* Prevents the content from wrapping */
+    overflow: hidden; /* Hides content that exceeds cell dimensions */
+    text-overflow: ellipsis; /* Adds an ellipsis (...) to indicate hidden content */
+  }
+
+  
+    .styled-select {
+        width: 250px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        appearance: none;
+        background: no-repeat right center;
+        background-color: white;
+        font-size: 16px;
+        color: #333;
+    }
+
+      .hidden-row {
+          display: none;
+      }
+      /* Style for Excel sheet header image */
+      img.header-image {
+        width: 100%; /* Make the image width 100% of its container */
+        max-height: 100px; /* Set a maximum height for the image (adjust as needed) */
+        display: block; /* Ensure it's displayed as a block element */
+        margin: 0 auto; /* Center the image horizontally */
+        display: none; 
+      }
+      
+  
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div class="table-container">
+    <table class="table">
+        <tr>
+            <th></th>
+            <th>Rate</th>
+        </tr>
+        <tr>
+            <td>USD</td>
+            <td><input type="number" step="any" {% if rate %} value="{{ rate[0]['usd'] }}" {% endif %} min="0" name="current_rate_usd" id="current_rate_usd" disabled ></td>
+        </tr>
+        <tr>
+            <td>JOD</td>
+            <td><input type="number" step="any" {% if rate %} value="{{ rate[0]['jod'] }}" {% endif %} min="0" name="current_rate_jod" id="current_rate_jod" disabled></td>
+        </tr>
+    </table>
+    <table class="table">
+        <tr>
+            <th></th>
+            <th>Collect daily cash receipts</th>
+            <th></th>
+        </tr>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        <tr>
+          <form action="/report" method="post">
+            <th><input type="date" id="selected_date" name="selected_date"></th>
+            <th>
+                <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Default select example">
+                    <option disabled selected>Store</option>
+                    {% if stores %}
+                        {% for store in stores %}
+                            {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                                <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </th>
+            <th><button class="btn btn-primary" type="submit" id="addButton">Select</button></th>
+          </form>
+        </tr>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </table>
+
+    <table class="table">
+        <tr>
+            <th>User</th>
+            <th>Store</th>
+            <th>Date</th>
+            <th>Created By</th>
+        </tr>
+        <tr>
+          <td>{{uname}}</td>
+          <td>{{store}}</td>
+          <td>{%if rate%} {{rate[0]['rdate']}} {%endif%}</td>
+          <td>{%if rate%} {{rate[0]['username']}} {%endif%}</td>
+        </tr>
+    </table>
+</div>
+
+<table class="table table-hover" id="TableToExport">
+  
+  <thead>
+    {%if cashx%}
+    <!--
+    <tr>
+      <th><img src="static/logo.png" alt="logo" class="header-image"></th>
+    </tr>
+    -->
+    <tr>
+      <th scope="col">رقم الكاش</th>
+      <th scope="col">اسم الكاشير</th>
+      <th scope="col">رقم الكاشير</th>
+      <th scope="col">شيقل</th>
+      <th scope="col">دولار</th>
+      <th scope="col">دينار</th>
+      <th scope="col">credit</th>
+      <th scope="col">فيزا-بنك فلسطين</th>
+      <th scope="col">ايزي لايف</th>
+      <th scope="col">شيك</th>
+      <th scope="col">كوبون</th>
+      <th scope="col">جوال باي</th>
+      <th scope="col">فيرا - البنك العربي</th>
+      <th scope="col">المجموع الفعلي</th>
+      <th scope="col">X-report</th>
+      <th scope="col">الفارق- شيقل</th>
+
+  </tr>
+</thead>
+<tbody>
+        <!--should be inside input or label-->
+  
+    {% for i in cashx %}
+        <tr>
+          <td>{{i['cash_number']}}</td>
+          <td>{{i['cashier_name']}}</td>
+          <td>{{i['cashier_id']}}</td>
+          <td>{{i['ils']}}</td>
+          <td>{{i['usd']}}</td>
+          <td>{{i['jod']}}</td>
+          <td>{{i['credit']}}</td>
+          <td>{{i['visa_palestine']}}</td>
+          <td>{{i['easy_life']}}</td>
+          <td>{{i['bcheck']}}</td>
+          <td>{{i['coupon']}}</td>
+          <td>{{i['jawwal_pay']}}</td>
+          <td>{{i['visa_arabi']}}</td>
+          <td>{{i['ttl_ils']}}</td>
+          <td>{{i['x_report']}}</td>
+          <td>{{i['diff']}}</td>
+
+        </tr>
+    {% endfor %}
+  {%endif%}
+
+  {%if cashz %}
+
+    <tr>
+      <th>   </th>
+      <th scope="col">اسم التقرير</th>
+      <th scope="col">رقم الكاش</th>
+      <th scope="col">شيقل</th>
+      <th scope="col">دولار</th>
+      <th scope="col">دينار</th>
+      <th scope="col">credit</th>
+      <th scope="col">فيزا-بنك فلسطين</th>
+      <th scope="col">ايزي لايف</th>
+      <th scope="col">شيك</th>
+      <th scope="col">كوبون</th>
+      <th scope="col">جوال باي</th>
+      <th scope="col">فيرا - البنك العربي</th>
+      <th scope="col">مجموع Xreport</th>
+      <th scope="col">Z-report</th>
+      <th scope="col">الفارق- شيقل</th>
+
+    </tr>
+
+  
+
+  {% for i in cashz %}
+    <tr>
+        <td><input type="hidden" name="row_id" id = "row_id"value="{{ i['id'] }}"></td>
+        <td>Z Report<td>
+        {{i['cash_number']}}
+        <td>{{i['ils']}}</td>
+        <td>{{i['usd']}}</td>
+        <td>{{i['jod']}}</td>
+        <td>{{i['credit']}}</td>
+        <td>{{i['visa_palestine']}}</td>
+        <td>{{i['easy_life']}}</td>
+        <td>{{i['bcheck']}}</td>
+        <td>{{i['coupon']}}</td>
+        <td>{{i['jawwal_pay']}}</td>
+        <td>{{i['visa_arabi']}}</td>
+        <td>{{i['ttl_ils']}}</td>
+        <td>{{i['ttl_x_report']}}</td>
+        <td>{{i['diff']}}</td>
+
+    </tr>
+{% endfor %}
+{% endif %}
+
+{%if ttlview %}
+    <tr>
+      <th scope="col"></th>
+      <th scope="col" style="font-size:16px" >مجموع البيع الفعلي الكلي</th>
+      <th scope="col"></th>
+      <th scope="col">{{ ttlview['ils'] }}</th>
+      <th scope="col">{{ ttlview['usd'] }}</th>
+      <th scope="col">{{ ttlview['jod']}}</th>
+      <th scope="col">{{ ttlview['credit'] }}</th>
+      <th scope="col">{{ ttlview['visa_palestine'] }}</th>
+      <th scope="col">{{ ttlview['easy_life'] }}</th>
+      <th scope="col">{{ ttlview['bcheck'] }}</th>
+      <th scope="col">{{ ttlview['coupon'] }}</th>
+      <th scope="col">{{ ttlview['jawwal_pay'] }}</th>
+      <th scope="col">{{ ttlview['visa_arabi'] }}</th>
+      <th scope="col">{{ ttlview['ttl_ils'] }}</th>
+      <th scope="col">{{ ttlview['x_report'] }}</th>
+      <th scope="col">{{ ttlview['diff'] }}</th>
+
+    </tr>
+{% endif %}
+{%if ttlview %}
+    <tr>
+      <th scope="col"></th>
+      <th scope="col" style="font-size:16px">مجموع البيع الفعلي شيقل</th>
+      <th scope="col"></th>
+      <th scope="col">{{ ttlview['ils'] }}</th>
+      <th scope="col">{{ (ttlview['usd']  * rate[0]['usd'])|round(2) }}</th>
+      <th scope="col">{{ (ttlview['jod']  * rate[0]['jod'])|round(2) }}</th>
+      <th scope="col">{{ ttlview['credit'] }}</th>
+      <th scope="col">{{ ttlview['visa_palestine'] }}</th>
+      <th scope="col">{{ ttlview['easy_life'] }}</th>
+      <th scope="col">{{ ttlview['bcheck'] }}</th>
+      <th scope="col">{{ ttlview['coupon'] }}</th>
+      <th scope="col">{{ ttlview['jawwal_pay'] }}</th>
+      <th scope="col">{{ ttlview['visa_arabi'] }}</th>
+      <th scope="col">{{ ttlview['ttl_ils'] }}</th>
+      <th scope="col">{{ ttlview['x_report'] }}</th>
+      <th scope="col">{{ ttlview['diff'] }}</th>
+
+    </tr>
+    {% endif %}
+    {%if ttlzview %}
+      <tr>
+          <!--ttl1 import from db-->
+          <th scope="col"></th>
+          <th scope="col">مجموع البيع على النظام</th>
+          <th scope="col"></th>
+          <th scope="col">{{ ttlzview['ils'] }}</th>
+          <th scope="col">{{ ttlzview['usd']}}</th>
+          <th scope="col">{{ ttlzview['jod']}}</th>
+          <th scope="col">{{ ttlzview['credit'] }}</th>
+          <th scope="col">{{ ttlzview['visa_palestine'] }}</th>
+          <th scope="col">{{ ttlzview['easy_life'] }}</th>
+          <th scope="col">{{ ttlzview['bcheck'] }}</th>
+          <th scope="col">{{ ttlzview['coupon'] }}</th>
+          <th scope="col">{{ ttlzview['jawwal_pay'] }}</th>
+          <th scope="col">{{ ttlzview['visa_arabi'] }}</th>
+          <th scope="col">{{ ttlzview['ttl_ils'] }}</th>
+          <th scope="col">{{ ttlzview['ttl_x_report'] }}</th>
+          <th scope="col">{{ ttlzview['diff'] }}</th>
+
+        </tr>
+          <!--import from db multiply with rate-->
+      <tr>
+          <th scope="col" style="width:90px"></th>
+          <th scope="col" style="width:90px">مجموع البيع على النظام شيقل</th>
+          <th scope="col"></th>
+          <th scope="col">{{ ttlzview['ils'] }}</th>
+          <th scope="col">{{ (ttlzview['usd']  * rate[0]['usd'])|round(2) }}</th>
+          <th scope="col">{{ (ttlzview['jod']  * rate[0]['jod'])|round(2) }}</th>
+          <th scope="col">{{ ttlzview['credit'] }}</th>
+          <th scope="col">{{ ttlzview['visa_palestine'] }}</th>
+          <th scope="col">{{ ttlzview['easy_life'] }}</th>
+          <th scope="col">{{ ttlzview['bcheck'] }}</th>
+          <th scope="col">{{ ttlzview['coupon'] }}</th>
+          <th scope="col">{{ ttlzview['jawwal_pay'] }}</th>
+          <th scope="col">{{ ttlzview['visa_arabi'] }}</th>
+          <th scope="col">{{ ttlzview['ttl_ils'] }}</th>
+          <th scope="col">{{ ttlzview['ttl_x_report'] }}</th>
+          <th scope="col">{{ ttlzview['diff'] }}</th>
+
+        </tr>
+      {% endif %}
+      {%if ttlview %}
+        {%if ttlzview %}
+      <tr>
+        <th scope="col"></th>
+        <th scope="col" style="font-size:16px">مجموع الفارق بين البيع الفعلي والنظام شيقل</th>
+        <th scope="col"></th>
+        <th scope="col">{{ (ttlview['ils'] - ttlzview['ils'])|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd']))|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod']) )|round(2) }}</th>
+        <th scope="col">{{ (ttlview['credit'] - ttlzview['credit'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['visa_palestine'] - ttlzview['visa_palestine'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['easy_life'] - ttlzview['easy_life'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['bcheck'] - ttlzview['bcheck'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['coupon'] - ttlzview['coupon'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['jawwal_pay'] - ttlzview['jawwal_pay'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['visa_arabi'] - ttlzview['visa_arabi'])|round(2)  }}</th>
+        <th scope="col">{{ (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['x_report'] - ttlzview['ttl_x_report'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['diff'] - ttlzview['diff'])|round(2) }}</th>
+      </tr>
+        {%endif%}
+      {% endif %}
+    </table>
+  {% if deposit%}
+  <div class="table-container">
+    <table class="table table-hover" id="TableToExport2">
+        <tr class="hidden-row">
+          <th></th>
+          <th>Rate</th>
+          <th></th>
+      </tr>
+      <tr class="hidden-row">
+          <td>USD</td>
+          <td> {% if rate %}{{ rate[0]['usd'] }} {% endif %}</td>
+          <td></td>
+      </tr>
+      <tr class="hidden-row">
+          <td>JOD</td>
+          <td>{% if rate %} {{ rate[0]['jod'] }} {% endif %}</td>
+          <td></td>
+      </tr>
+    
+        <tr>
+            <th></th>
+            <th>شيقل</th>
+            <th></th>
+        </tr>
+        <tr>
+            <th>الفئة</th>
+            <th>العدد</th>
+            <th>المجموع</th>
+        </tr>
+        <tr>
+          <td>200</td>
+          <td>{{deposit[0]['ils_200']}}</td>
+          <td>{{ (deposit[0]['ils_200'] * 200) }}</td>
+        </tr>
+        <tr>
+          <td>100</td>
+          <td>{{deposit[0]['ils_100']}}</td>
+          <td>{{ (deposit[0]['ils_100'] * 100) }}</td>
+        </tr>
+        <tr>
+          <td>50</td>
+          <td>{{deposit[0]['ils_50']}}</td>
+          <td>{{ (deposit[0]['ils_50'] * 50) }}</td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td>{{deposit[0]['ils_20']}}</td>
+          <td>{{ ( deposit[0]['ils_20'] * 20 ) }}</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>{{deposit[0]['ils_10']}}</td>
+          <td>{{ (deposit[0]['ils_10'] * 10) }}</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>{{deposit[0]['ils_5']}}</td>
+          <td>{{ (deposit[0]['ils_5'] * 5)}}</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>{{deposit[0]['ils_2']}}</td>
+          <td>{{ (deposit[0]['ils_2'] * 2) }}</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>{{deposit[0]['ils_1']}}</td>
+          <td>{{ (deposit[0]['ils_1'] * 1) }}</td>
+        </tr>
+        <tr>
+          <td>0.5</td>
+          <td>{{deposit[0]['ils_05']}}</td>
+          <td>{{ ((deposit[0]['ils_05'] * 0.5)|round(2)) }}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <th>{{( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}}</th>
+        </tr>
+          <tr>
+          <td></td>
+          <td></td>
+          {%if ttlview %}
+          <th> {{ (((ttlview['ils'] * (-1))|round(2) + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))))|round(2)}}</th>
+          {% endif %}
+        </tr>
+  </table>
+
+  <table class="table table-hover " id="TableToExport3">
+      <tr>
+          <th></th>
+          <th>دولار</th>
+          <th></th>
+      </tr>
+      <tr>
+          <th>الفئة</th>
+          <th>العدد</th>
+          <th>المجموع</th>
+      </tr>
+      <tr>
+        <td>100</td>
+        <td>{{deposit[0]['usd_100']}}</td>
+        <td>{{ (deposit[0]['usd_100'] * 100) }}</td>
+      </tr>
+      <tr>
+        <td>50</td>
+        <td>{{deposit[0]['usd_50']}}</td>
+        <td>{{ (deposit[0]['usd_50'] * 50) }}</td>
+      </tr>
+      <tr>
+        <td>20</td>
+        <td>{{deposit[0]['usd_20']}}</td>
+        <td>{{ ( deposit[0]['usd_20'] * 20 ) }}</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>{{deposit[0]['usd_10']}}</td>
+        <td>{{ (deposit[0]['usd_10'] * 10) }}</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>{{deposit[0]['usd_5']}}</td>
+        <td>{{ (deposit[0]['usd_5'] * 5)}}</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>{{deposit[0]['usd_2']}}</td>
+        <td>{{ (deposit[0]['usd_2'] * 2) }}</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>{{deposit[0]['usd_1']}}</td>
+        <td>{{ (deposit[0]['usd_1'] * 1) }}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <th>{{( ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}}</th>
+      </tr>
+        <tr>
+        <td></td>
+        <td></td>
+        {%if ttlview %}
+        <th> {{ (( (ttlview['usd'] * (-1) )+ ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1) ) ))|round(2)}}</th>
+        {% endif %}
+      </tr>
+  </table>
+
+    <table class="table table-hover" id="TableToExport4">
+      <tr>
+          <th></th>
+          <th>دينار</th>
+          <th></th>
+      </tr>
+      <tr>
+          <th>الفئة</th>
+          <th>العدد</th>
+          <th>المجموع</th>
+      </tr>
+      <tr>
+        <td>50</td>
+        <td>{{deposit[0]['jod_50']}}</td>
+        <td>{{ (deposit[0]['jod_50'] * 50) }}</td>
+      </tr>
+      <tr>
+        <td>20</td>
+        <td>{{deposit[0]['jod_20']}}</td>
+        <td>{{ ( deposit[0]['jod_20'] * 20 ) }}</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>{{deposit[0]['jod_10']}}</td>
+        <td>{{ (deposit[0]['jod_10'] * 10) }}</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>{{deposit[0]['jod_5']}}</td>
+        <td>{{ (deposit[0]['jod_5'] * 5)}}</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>{{deposit[0]['jod_1']}}</td>
+        <td>{{ (deposit[0]['jod_1'] * 1) }}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <th>{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}}</th>
+      </tr>
+        <tr>
+        <td></td>
+        <td></td>
+        {%if ttlview %}
+        <th> {{ (((ttlview['jod'] * (-1))|round(2) + (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) +  (deposit[0]['jod_1'] * 1) ))|round(2)}}</th>
+        {% endif %}
+      </tr>
+      <tr>
+        <th><button class="btn btn-primary btn-sm" id="sheetjsexport">Excel</button>
+
+        </th>
+      </tr>
+  </table>
+</div>
+{%if rate%}
+<div id="disable">
+  <form action="/lockday" method="post">
+
+    <h2>
+      {% if rate[0]['disable'] == 1 %}
+      Locked
+      {% else %}
+      Unlocked
+      {%endif%}
+    </h2>
+    <input id="disableValue" type="number" name="disableValue"  style="display: none;" value="{{ rate[0]['id'] }}">
+    <button type="submit" class="btn btn-primary" name="action" value="lock">Lock</button>
+    <button type="submit" class="btn btn-danger" name="action" value="unlock">Unlock</button>
+</form>
+</div>
+{%endif%}
+{%endif%}
+
+</body>
+
+
+<script>
+
+  document.addEventListener("DOMContentLoaded", function() {
+    // Attach a click event listener to the "Excel" button
+    document.getElementById("sheetjsexport").addEventListener("click", function() {
+      // Create workbooks wb, wb2, wb3, and wb4
+      var wb = XLSX.utils.table_to_book(document.getElementById("TableToExport"));
+      var wb2 = XLSX.utils.table_to_book(document.getElementById("TableToExport2"));
+      var wb3 = XLSX.utils.table_to_book(document.getElementById("TableToExport3"));
+      var wb4 = XLSX.utils.table_to_book(document.getElementById("TableToExport4"));
+  
+      // Get the sheet names from each workbook
+      var sheetNames1 = wb.SheetNames;
+      var sheetNames2 = wb2.SheetNames;
+      var sheetNames3 = wb3.SheetNames;
+      var sheetNames4 = wb4.SheetNames;
+  
+      // Create a new workbook
+      var combinedWorkbook = XLSX.utils.book_new();
+  
+      // Merge all the tables into one sheet
+      var combinedSheetData = [];
+  
+      function addSheetData(workbook, sheetNames) {
+        sheetNames.forEach(function(sheetName) {
+          var ws = workbook.Sheets[sheetName];
+          XLSX.utils.sheet_to_csv(ws, {
+            FS: "\t",
+            strip: true,
+          }).split("\n").forEach(function(row) {
+            combinedSheetData.push([].concat(row.split("\t")));
+          });
+        });
+      }
+  
+      addSheetData(wb, sheetNames1);
+      addSheetData(wb2, sheetNames2);
+      addSheetData(wb3, sheetNames3);
+      addSheetData(wb4, sheetNames4);
+  
+      var combinedSheet = XLSX.utils.aoa_to_sheet(combinedSheetData);
+  
+      // Add the merged sheet to the combined workbook
+      XLSX.utils.book_append_sheet(combinedWorkbook, combinedSheet, "CombinedSheet");
+  
+      // Export the combined workbook as a file
+      XLSX.writeFile(combinedWorkbook, "CombinedWorkbook.xlsx");
+    });
+  });
+  
+ </script>
+
+
+{% endblock %}
