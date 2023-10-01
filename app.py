@@ -58,13 +58,16 @@ def login():
             return render_template("login.html", error_password=error_password)
 
         rows = db.execute("SELECT hash,id,disable FROM users WHERE username = ?", username)
-        if rows[0]["disable"] == 1:
-          error_general = "User is disabled"
-          return render_template("login.html", error_general=error_general)
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
+        if rows:
+          if rows[0]["disable"] == 1:
+            error_general = "User is disabled"
+            return render_template("login.html", error_general=error_general)
+          if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
             error_general = "Invalid username or password."
             return render_template("login.html", error_general=error_general)
-        
+        else:
+          error_general = "Invalid username or password."
+          return render_template("login.html", error_general=error_general)
         # Remember which user has logged in
         
         session["user_id"] = rows[0]["id"]
@@ -180,47 +183,48 @@ def logout():
 @app.route("/addcashier", methods=["GET","POST"])
 @login_required
 def addCashier():
+  roles = db.execute("select * from users where id = ?", session.get("user_id"))
+  if roles[0]['is_admin'] == 1:
+    role = "admin"
     if request.method == "GET":
       # get rule to pass navbar
-      roles = db.execute("select * from users where id = ?", session.get("user_id"))
-      if roles[0]['is_admin'] == 1:
-        role = "admin"
-        existing_cashiers = db.execute("SELECT id, name FROM cashiers")
-        stores = db.execute("select name from stores where id != 99 and id != 0 and id != 100")
-        return render_template("/addcashier.html", role=role, existing_cashiers=existing_cashiers, stores=stores)
-      else:
-        return apology("UR NOT ADMING GET OUT OF HERE")
-
+      existing_cashiers = db.execute("SELECT id, name FROM cashiers")
+      stores = db.execute("select name from stores where id != 99 and id != 0 and id != 100")
+      return render_template("/addcashier.html", role=role, existing_cashiers=existing_cashiers, stores=stores)
     else:
-        name = request.form.get("cashiername")
-        number = int(request.form.get("cashiernumber"))
-        store = request.form.get("store")
-        if store:
-          storenumber= db.execute("select id from stores where name = ?",store)
-          if storenumber:
-            storenumber = storenumber[0]['id']
-        # get rule to pass navbar
-        roles = db.execute("select * from users where id = ?", session.get("user_id"))
-        if roles[0]['is_admin'] == 1:
-            role = "admin"
+      name = request.form.get("cashiername")
+      number = request.form.get("cashiernumber")
+      store = request.form.get("store")
+      if store:
+        storenumber= db.execute("select id from stores where name = ?",store)
+        if storenumber:
+          storenumber = storenumber[0]['id']
+        else:
+          flash("Store not found!")
+          return redirect("addcashier",code=302)
+      else:
+        flash("Store not found, Make sure to Select Store")
+        return redirect("addcashier",code=302)
+      # check_if_exists
+      cashiers = db.execute("select * from cashiers")
+      if cashiers:
+        for cashier in cashiers:
+          if number == cashier['id']:
+            flash("username already exists")
+            return redirect("addcashier",code=302)
+      # insert new cashier
+      db.execute("insert into cashiers (id, name,store_id) values(?,?,?)", number, name, storenumber)
+      store_id = db.execute("select store_id from users where id = ?",session.get('user_id'))[0]['store_id']
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into user_movements (timestamp, user_id, store_id, movement_type, m_table, m_description) values (? ,?, ?, ?, ?, ?)",timestamp, session.get("user_id"), store_id, "Add Cashier","cashiers",f"cashier {name} with number {number} has been added to the cashiers at store {store}." )
+      flash(f"User: {name} with number {number} has been added to the cashiers at store {store}.")
 
-        # check_if_exists
-        cashiers = db.execute("select * from cashiers")
-        if cashiers:
-            for cashier in cashiers:
-                if number == cashier['id']:
-                  flash("username already exists")
-                  return redirect("addcashier",code=302)
-        # insert new cashier
-        db.execute("insert into cashiers (id, name,store_id) values(?,?,?)", number, name, storenumber)
-        store_id = db.execute("select store_id from users where id = ?",session.get('user_id'))[0]['store_id']
-        timestamp = datetime.now()
-        timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        db.execute("insert into user_movements (timestamp, user_id, store_id, movement_type, m_table, m_description) values (? ,?, ?, ?, ?, ?)",timestamp, session.get("user_id"), store_id, "Add Cashier","cashiers",f"cashier {name} with number {number} has been added to the cashiers at store {store}." )
-        flash(f"User: {name} with number {number} has been added to the cashiers at store {store}.")
-
-        return redirect("/addcashier", code=302)
-
+      return redirect("/addcashier", code=302)
+  else:
+    return apology("UR NOT ADMING GET OUT OF HERE")
+  
+  
 # report table
 @app.route("/users",methods = ["GET","POST"])
 @login_required
@@ -257,8 +261,8 @@ def ubstore():
       else:
         flash("Store not found!")
         return redirect("users",code=302)
-      data = db.execute("select users.username, stores.name as store_name, stores.id  from users join stores on users.store_id = stores.id where users.store_id = ? order by stores.id , users.username;",store_id)
-      cashiers = db.execute("select cashiers.name, cashiers.id, stores.name as store_name from cashiers join stores on cashiers.store_id = stores.id where store_id = ? order by stores.name, cashiers.name ", store_id)
+      data = db.execute("select users.username, stores.name as store_name, stores.id  from users join stores on users.store_id = stores.id where users.store_id = ? order by stores.id , users.username COLLATE NOCASE;",store_id)
+      cashiers = db.execute("select cashiers.name, cashiers.id, stores.name as store_name from cashiers join stores on cashiers.store_id = stores.id where store_id = ? order by stores.name, cashiers.name COLLATE NOCASE", store_id)
       return render_template("/ubstore.html",role=role,data=data, cashiers=cashiers)
     else:
       return apology("Method Not Allowed!!")
@@ -277,10 +281,9 @@ def ubrole():
       if not Role:
         flash("Must select a role!")
         return redirect("users",code=302)
-      #['Administration','Accounter','Manager','Cashier','Chain']
       if Role == 'Administration':
         RoleId = 0
-        data = db.execute("select username from users where store_id = ? and disable = 0",RoleId)
+        data = db.execute("select username from users where store_id = ? and disable = 0 order by username COLLATE NOCASE",RoleId)
         if data:
           for i in data:
             i['store_name'] ='Administration'
@@ -292,7 +295,7 @@ def ubrole():
         
       elif Role == 'Accounter':
         RoleId = 99
-        data = db.execute("select username from users where store_id = ? and disable = 0",RoleId)
+        data = db.execute("select username from users where store_id = ? and disable = 0 order by username COLLATE NOCASE",RoleId)
         if data:
           for i in data:
             i['store_name'] ='Accounting'
@@ -304,7 +307,7 @@ def ubrole():
         
       elif Role == 'Manager':
         RoleId = 1
-        data = db.execute("select users.username, stores.name as store_name, stores.id from users join stores on users.store_id = stores.id where users.is_manager = ? and users.disable = 0 order by stores.id, users.username",RoleId)
+        data = db.execute("select users.username, stores.name as store_name, stores.id from users join stores on users.store_id = stores.id where users.is_manager = ? and users.disable = 0 order by stores.id, users.username COLLATE NOCASE",RoleId)
         if data:
           for i in data:
             i['role'] ='Manager'    
@@ -314,7 +317,7 @@ def ubrole():
           return redirect("users",code=302)
         
       elif Role == 'Cashier':
-        data = db.execute("select cashiers.id, cashiers.name as username, stores.name as store_name from cashiers join stores on cashiers.store_id = stores.id where cashiers.disable = 0 order by stores.id , cashiers.name")
+        data = db.execute("select cashiers.id, cashiers.name as username, stores.name as store_name from cashiers join stores on cashiers.store_id = stores.id where cashiers.disable = 0 order by stores.id , cashiers.name COLLATE NOCASE")
         if data:
           for i in data:
             i['role'] ='Cashier'    
@@ -324,7 +327,7 @@ def ubrole():
           return redirect("users",code=302)
         
       elif Role == 'Chain':
-        data = db.execute("select users.username, users.is_admin, users.is_accounting, users.is_manager, stores.name as store_name from users join stores on users.store_id = stores.id where users.disable = 0 order by stores.id, users.username")
+        data = db.execute("select users.username, users.is_admin, users.is_accounting, users.is_manager, stores.name as store_name from users join stores on users.store_id = stores.id where users.disable = 0 order by stores.id, users.username COLLATE NOCASE")
         if data:
           for i in data:
             if i['is_admin'] == 1:
@@ -333,7 +336,7 @@ def ubrole():
               i['role'] ='Accounter'
             elif i['is_manager'] == 1:
               i['role'] ='Manager'
-          cashiers =  db.execute("select cashiers.id, cashiers.name as username, stores.name as store_name from cashiers join stores on cashiers.store_id = stores.id where cashiers.disable = 0 order by stores.id , cashiers.name")
+          cashiers =  db.execute("select cashiers.id, cashiers.name as username, stores.name as store_name from cashiers join stores on cashiers.store_id = stores.id where cashiers.disable = 0 order by stores.id , cashiers.name COLLATE NOCASE")
           if cashiers:
             for i in cashiers:
               i['role'] ='Cashier'
@@ -632,7 +635,7 @@ def home():
     role ="manager"
     uname = db.execute("select username,store_id from users where id = ?", session.get("user_id"))
     store = db.execute("select name from stores where id = ?", uname[0]['store_id'])[0]['name']
-    cashiers = db.execute("select cashiers.name,cashiers.id  from cashiers where store_id = ? and disable = 0",uname[0]['store_id'])
+    cashiers = db.execute("select cashiers.name,cashiers.id  from cashiers where store_id = ? and disable = 0 order by cashiers.name COLLATE NOCASE",uname[0]['store_id'])
     cdate = db.execute("select cdate from c_date where store_id = ?", uname[0]['store_id'])
     if cdate:
       zdate = cdate[0]['cdate']
@@ -1766,7 +1769,6 @@ def homeview(sdate,sstore):
       rate = db.execute("select rate.disable,rate.id,rate.rdate,rate.usd, rate.jod,users.username from rate join users on rate.user_id = users.id where rate.rdate = ? and rate.store_id = ?",sdate,store_id)
 
       if deposit:
-
         return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,cashz=cashz,deposit=deposit,uname=uname,sdate=sdate,rate=rate,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
       elif cashz:
         return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,cashz=cashz,uname=uname,rate=rate,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
@@ -1778,3 +1780,4 @@ def homeview(sdate,sstore):
         return render_template("/homeview.html",role=role,store=sstore,uname=uname,stores=stores)
       else:
         return render_template("/homeview.html",role=role,store=sstore,uname=uname)
+      

@@ -193,11 +193,6 @@ Report
   
   <thead>
     {%if cashx%}
-    <!--
-    <tr>
-      <th><img src="static/logo.png" alt="logo" class="header-image"></th>
-    </tr>
-    -->
     <tr>
       <th scope="col">رقم الكاش</th>
       <th scope="col">اسم الكاشير</th>
@@ -391,9 +386,9 @@ Report
         <th scope="col">{{ (ttlview['coupon'] - ttlzview['coupon'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['jawwal_pay'] - ttlzview['jawwal_pay'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['visa_arabi'] - ttlzview['visa_arabi'])|round(2)  }}</th>
-        <th scope="col">{{ (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd'])) + ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)  }}</th>
         <th scope="col">{{ (ttlview['x_report'] - ttlzview['ttl_x_report'])|round(2) }}</th>
-        <th scope="col">{{ (ttlview['diff'] - ttlzview['diff'])|round(2) }}</th>
+        <th scope="col">{{ (ttlview['diff'])|round(2) }}</th>
       </tr>
         {%endif%}
       {% endif %}
@@ -473,13 +468,13 @@ Report
           <td>{{ ((deposit[0]['ils_05'] * 0.5)|round(2)) }}</td>
         </tr>
         <tr>
-          <td></td>
-          <td></td>
+          <th></th>
+          <th></th>
           <th>{{( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}}</th>
         </tr>
           <tr>
-          <td></td>
-          <td></td>
+            <th></th>
+            <th></th>
           {%if ttlview %}
           <th> {{ (((ttlview['ils'] * (-1))|round(2) + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))))|round(2)}}</th>
           {% endif %}
@@ -533,13 +528,13 @@ Report
         <td>{{ (deposit[0]['usd_1'] * 1) }}</td>
       </tr>
       <tr>
-        <td></td>
-        <td></td>
+        <th></th>
+        <th></th>
         <th>{{( ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}}</th>
       </tr>
         <tr>
-        <td></td>
-        <td></td>
+          <th></th>
+          <th></th>
         {%if ttlview %}
         <th> {{ (( (ttlview['usd'] * (-1) )+ ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1) ) ))|round(2)}}</th>
         {% endif %}
@@ -583,21 +578,21 @@ Report
         <td>{{ (deposit[0]['jod_1'] * 1) }}</td>
       </tr>
       <tr>
-        <td></td>
-        <td></td>
+        <th></th>
+        <th></th>
         <th>{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}}</th>
       </tr>
         <tr>
-        <td></td>
-        <td></td>
+        <th></th>
+        <th></th>
         {%if ttlview %}
         <th> {{ (((ttlview['jod'] * (-1))|round(2) + (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) +  (deposit[0]['jod_1'] * 1) ))|round(2)}}</th>
         {% endif %}
       </tr>
       <tr>
-        <th><button class="btn btn-primary btn-sm" id="sheetjsexport">Excel</button>
-
-        </th>
+        <th><button class="btn btn-primary btn-sm" id="sheetjsexport">Excel</button></th>
+        <th></th>
+        <th></th>
       </tr>
   </table>
 </div>

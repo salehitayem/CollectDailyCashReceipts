@@ -26,6 +26,9 @@ Add Cashier
       margin-bottom: 20px;
     }
 
+    label {
+      font-weight: bold;
+    }
 
     input[type="number"],
     input[type="text"],
@@ -51,13 +54,12 @@ Add Cashier
       cursor: pointer;
     }
   </style>
-
   <div class="container">
     <h2>Add Cashier</h2>
     <form action="/addcashier" method="post" onsubmit="return validateForm()">
       <div class="form-group">
         <label for="cashiernumber">Cashier Number:</label>
-        <input autocomplete="off" autofocus class="form-control" id="cashiernumber" name="cashiernumber" placeholder="Enter Cashier Number" min="0" type="number" oninput="validateForm()">
+        <input autocomplete="off" autofocus class="form-control" id="cashiernumber" name="cashiernumber" placeholder="Enter Cashier Number" type="text" oninput="validateForm()">
         <p id="numberError" class="error-message"></p>
       </div>
       <div class="form-group">
@@ -83,65 +85,82 @@ Add Cashier
       <p id="existenceError" class="error-message"></p> <!-- Display existence error -->
     </form>
   </div>
-    <script>
-        const existingCashiers = [
-            {% for cashier in existing_cashiers %}
-                { id: {{ cashier['id'] }}, name: '{{ cashier['name'] }}' },
-            {% endfor %}
-        ];
+ <script>
+  const existingCashiers = [
+    {% for cashier in existing_cashiers %}
+      { id: '{{ cashier['id'] }}', name: '{{ cashier['name'] }}' },
+    {% endfor %}
+  ];
 
-        const addButton = document.getElementById('addButton');
-        const cashierNumberInput = document.getElementById('cashiernumber');
-        const cashierNameInput = document.getElementById('cashiername');
-        const numberError = document.getElementById('numberError');
-        const nameError = document.getElementById('nameError');
-        const storeError = document.getElementById('storeError'); // Add this line
-        const existenceError = document.getElementById('existenceError');
+  // Function to check if a cashier with the given number already exists
+  function isCashierNumberExists(cashierNumber) {
+    return existingCashiers.some(cashier => cashier.id === cashierNumber);
+  }
 
-        function validateForm() {
-            const numberValue = cashierNumberInput.value;
-            const nameValue = cashierNameInput.value;
-            const selectedStore = document.getElementById('storeSelect').value;
+  // Function to check if a cashier with the given name already exists
+  function isCashierNameExists(cashierName) {
+    return existingCashiers.some(cashier => cashier.name === cashierName);
+  }
 
-            // Check for validation conditions for both inputs
-            const validNumber = (numberValue >= 0);
-            const validName = (nameValue.length >= 3);
-            const validStore = (selectedStore !== "admin" && selectedStore !== "accounting" && selectedStore !== "Select Store");
+  // Function to validate the form
+  function validateForm() {
+    const cashierNumber = document.getElementById('cashiernumber').value;
+    const cashierName = document.getElementById('cashiername').value;
+    const storeSelect = document.getElementById('storeSelect').value;
 
-            if (!validNumber) {
-                numberError.textContent = 'Invalid number';
-            } else {
-                numberError.textContent = '';
-            }
+    const numberError = document.getElementById('numberError');
+    const nameError = document.getElementById('nameError');
+    const storeError = document.getElementById('storeError');
+    const addButton = document.getElementById('addButton');
 
-            if (!validName) {
-                nameError.textContent = 'Name must be at least 3 characters';
-            } else {
-                nameError.textContent = '';
-            }
+    // Reset error messages
+    numberError.textContent = '';
+    nameError.textContent = '';
+    storeError.textContent = '';
 
-            if (!validStore) {
-                storeError.textContent = 'Please select a valid store';
-            } else {
-                storeError.textContent = '';
-            }
+    let isValid = true;
 
-            checkIfNameAndIdExist(numberValue, nameValue);
+    if (!cashierNumber) {
+      numberError.textContent = 'Cashier number is required.';
+      isValid = false;
+    } else if (isCashierNumberExists(cashierNumber)) {
+      numberError.textContent = 'Cashier number already exists.';
+      isValid = false;
+    }
 
-            addButton.disabled = !(validNumber && validName && validStore) || existenceError.textContent !== '';
+    if (!cashierName) {
+      nameError.textContent = 'Cashier name is required.';
+      isValid = false;
+    } else if (isCashierNameExists(cashierName)) {
+      nameError.textContent = 'Cashier name already exists.';
+      isValid = false;
+    }
 
-            return (validNumber && validName && validStore && existenceError.textContent === '');
-        }
+    if (storeSelect.value === '' || storeSelect.value === 'Accounting' || storeSelect.value === 'Administration') {
+      storeError.textContent = 'Please select a valid store.';
+      isValid = false;
+    }
 
+    addButton.disabled = !isValid;
 
-        function checkIfNameAndIdExist(numberValue, nameValue) {
-            const exists = existingCashiers.some(cashier => cashier.id === Number(numberValue) || cashier.name === nameValue);
+    // Prevent form submission if not valid
+    return isValid;
+  }
 
-            if (exists) {
-                existenceError.textContent = 'Name or ID already exists';
-            } else {
-                existenceError.textContent = ''; // Clear existence error
-            }
-        }
-    </script>
+  // Add event listener to the form's submit event
+  const form = document.querySelector('form');
+  form.addEventListener('submit', validateForm);
+
+  // Add input event listeners to cashiernumber and cashiername fields
+  const cashiernumberInput = document.getElementById('cashiernumber');
+  const cashiernameInput = document.getElementById('cashiername');
+  const storeSelect = document.getElementById('storeSelect');
+
+  cashiernumberInput.addEventListener('input', validateForm);
+  cashiernameInput.addEventListener('input', validateForm);
+  storeSelect.addEventListener('input', validateForm);
+</script>
+
+  
+  
 {% endblock %}

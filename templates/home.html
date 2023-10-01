@@ -424,14 +424,19 @@ Home
         <th scope="col">{{ (ttlview['coupon'] - ttlzview['coupon'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['jawwal_pay'] - ttlzview['jawwal_pay'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['visa_arabi'] - ttlzview['visa_arabi'])|round(2)  }}</th>
-        <th scope="col"{% if (ttlview['diff'] - ttlzview['diff'])|round(2) == (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) %}
+        
+        <th scope="col" {% if (ttlview['diff'])|round(2) ==  ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd'])) + ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)%}
         style="background-color:#00FF00;" {%else%}
-        style="background-color:#FFCCCC;" {% endif %}>{{ (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) }}</th>
+        style="background-color:#FFCCCC;" {% endif %}>         
+          {{ ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd'])) + ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)  }}</th>
+
         <th scope="col">{{ (ttlview['x_report'] - ttlzview['ttl_x_report'])|round(2) }}</th>
-        <th scope="col" {% if (ttlview['diff'] - ttlzview['diff'])|round(2) == (ttlview['ttl_ils'] - ttlzview['ttl_ils'])|round(2) %}
+
+        <th scope="col" {% if (ttlview['diff'])|round(2) ==  ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd'])) + ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)%}
         style="background-color:#00FF00;" {%else%}
-        style="background-color:#FFCCCC;" {% endif %}>{{ (ttlview['diff'] - ttlzview['diff'])|round(2)}}</th>
-        <th><button class="btn btn-primary btn-sm" id="exportButton">Excel</button></th>
+        style="background-color:#FFCCCC;" {% endif %}>{{ (ttlview['diff'])|round(2)}}</th>
+        
+        <th></th>
       </tr>
         {%endif%}
       {% endif %}
