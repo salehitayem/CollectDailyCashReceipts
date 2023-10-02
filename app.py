@@ -340,6 +340,9 @@ def ubrole():
           if cashiers:
             for i in cashiers:
               i['role'] ='Cashier'
+              return render_template("/ubrole.html",role=role,data=data,cashiers=cashiers)
+          else:
+            cashiers = {}
             return render_template("/ubrole.html",role=role,data=data,cashiers=cashiers)
         else:
           flash("Role not found!")
