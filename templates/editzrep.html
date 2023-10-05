@@ -261,4 +261,73 @@ Edit X-Report
         }
     }
 </script>
+<script>
+  // Function to handle Enter key press and move to the next input field
+  function handleEnterKeyPress(event, inputId) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent the default form submission
+  
+      const inputs = document.querySelectorAll("input"); // Get all input elements
+      const currentInput = document.getElementById(inputId);
+      const currentIndex = Array.from(inputs).indexOf(currentInput);
+  
+      let nextIndex = currentIndex + 1;
+      while (nextIndex < inputs.length && inputs[nextIndex].disabled) {
+        nextIndex++; // Skip disabled input fields
+      }
+  
+      if (nextIndex < inputs.length) {
+        const nextInput = inputs[nextIndex];
+        nextInput.focus(); // Focus on the next enabled input field
+      }
+    }
+  }
+  
+  // Attach the Enter key press event listener to each input field
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputs = document.querySelectorAll("input");
+  
+    inputs.forEach(input => {
+      input.addEventListener("keydown", function(event) {
+        handleEnterKeyPress(event, input.id);
+      });
+    });
+  });
+  </script>
+  
+  <!-- ... Rest of your first HTML code ... -->
+  
+  <script>
+  // Function to handle Enter key press and move to the next input field for the second set of forms
+  function handleEnterKeyPressForSecondForms(event, inputId) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent the default form submission
+  
+      const inputs = document.querySelectorAll("input[id^='zils_']"); // Get all input elements for the second set of forms
+      const currentInput = document.getElementById(inputId);
+      const currentIndex = Array.from(inputs).indexOf(currentInput);
+  
+      let nextIndex = currentIndex + 1;
+      while (nextIndex < inputs.length && inputs[nextIndex].disabled) {
+        nextIndex++; // Skip disabled input fields
+      }
+  
+      if (nextIndex < inputs.length) {
+        const nextInput = inputs[nextIndex];
+        nextInput.focus(); // Focus on the next enabled input field
+      }
+    }
+  }
+  
+  // Attach the Enter key press event listener to each input field for the second set of forms
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputs = document.querySelectorAll("input[id^='zils_']");
+  
+    inputs.forEach(input => {
+      input.addEventListener("keydown", function(event) {
+        handleEnterKeyPressForSecondForms(event, input.id);
+      });
+    });
+  });
+  </script>
 {% endblock %}
