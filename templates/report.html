@@ -2,7 +2,7 @@
 
 {% block title %}
 
-Report
+CDCR Report
 
 {% endblock %}
 
@@ -178,13 +178,13 @@ Report
             <th>User</th>
             <th>Store</th>
             <th>Date</th>
-            <th>Created By</th>
+            <th>Rate updated by</th>
         </tr>
         <tr>
           <td>{{uname}}</td>
           <td>{{store}}</td>
           <td>{%if rate%} {{rate[0]['rdate']}} {%endif%}</td>
-          <td>{%if rate%} {{rate[0]['username']}} {%endif%}</td>
+          <td>{%if rate_user%} {{rate_user[0]['username']}} {%endif%}</td>
         </tr>
     </table>
 </div>
@@ -288,9 +288,9 @@ Report
 
 {%if ttlview %}
     <tr>
-      <th scope="col"></th>
-      <th scope="col" style="font-size:16px" >مجموع البيع الفعلي الكلي</th>
-      <th scope="col"></th>
+
+      <th scope="col" colspan="3" >مجموع البيع الفعلي الكلي</th>
+
       <th scope="col">{{ ttlview['ils'] }}</th>
       <th scope="col">{{ ttlview['usd'] }}</th>
       <th scope="col">{{ ttlview['jod']}}</th>
@@ -307,11 +307,12 @@ Report
 
     </tr>
 {% endif %}
+{% if rate %}
 {%if ttlview %}
     <tr>
-      <th scope="col"></th>
-      <th scope="col" style="font-size:16px">مجموع البيع الفعلي شيقل</th>
-      <th scope="col"></th>
+
+      <th scope="col" colspan="3">مجموع البيع الفعلي شيقل</th>
+
       <th scope="col">{{ ttlview['ils'] }}</th>
       <th scope="col">{{ (ttlview['usd']  * rate[0]['usd'])|round(2) }}</th>
       <th scope="col">{{ (ttlview['jod']  * rate[0]['jod'])|round(2) }}</th>
@@ -331,9 +332,9 @@ Report
     {%if ttlzview %}
       <tr>
           <!--ttl1 import from db-->
-          <th scope="col"></th>
-          <th scope="col">مجموع البيع على النظام</th>
-          <th scope="col"></th>
+
+          <th scope="col" colspan="3">مجموع البيع على النظام</th>
+ 
           <th scope="col">{{ ttlzview['ils'] }}</th>
           <th scope="col">{{ ttlzview['usd']}}</th>
           <th scope="col">{{ ttlzview['jod']}}</th>
@@ -351,9 +352,9 @@ Report
         </tr>
           <!--import from db multiply with rate-->
       <tr>
-          <th scope="col" style="width:90px"></th>
-          <th scope="col" style="width:90px">مجموع البيع على النظام شيقل</th>
-          <th scope="col"></th>
+
+          <th scope="col" colspan="3">مجموع البيع على النظام شيقل</th>
+
           <th scope="col">{{ ttlzview['ils'] }}</th>
           <th scope="col">{{ (ttlzview['usd']  * rate[0]['usd'])|round(2) }}</th>
           <th scope="col">{{ (ttlzview['jod']  * rate[0]['jod'])|round(2) }}</th>
@@ -373,9 +374,9 @@ Report
       {%if ttlview %}
         {%if ttlzview %}
       <tr>
-        <th scope="col"></th>
-        <th scope="col" style="font-size:16px">مجموع الفارق بين البيع الفعلي والنظام شيقل</th>
-        <th scope="col"></th>
+
+        <th scope="col" colspan="3">مجموع الفارق بين البيع الفعلي والنظام شيقل</th>
+  
         <th scope="col">{{ (ttlview['ils'] - ttlzview['ils'])|round(2) }}</th>
         <th scope="col">{{ ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd']))|round(2) }}</th>
         <th scope="col">{{ ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod']) )|round(2) }}</th>
@@ -614,7 +615,7 @@ Report
 </div>
 {%endif%}
 {%endif%}
-
+{%endif%}
 </body>
 
 

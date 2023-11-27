@@ -11,6 +11,7 @@ import pytz
 from helpers import login_required, apology
 from flask import jsonify
 from datetime import datetime, timezone, timedelta
+import json
 # Configure application
 app = Flask(__name__)
 
@@ -74,7 +75,7 @@ def login():
 
         # import data from db the view the table and nav
         userdata = db.execute("select * from users where username = ?", request.form.get("username"))
-       
+      
         timestamp = datetime.now()
         timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
         db.execute("insert into user_movements (user_id, store_id,movement_type,timestamp) values(?,?,?,?)",session.get("user_id"),userdata[0]['store_id'],"Login",timestamp)
@@ -340,7 +341,7 @@ def ubrole():
           if cashiers:
             for i in cashiers:
               i['role'] ='Cashier'
-              return render_template("/ubrole.html",role=role,data=data,cashiers=cashiers)
+            return render_template("/ubrole.html",role=role,data=data,cashiers=cashiers)
           else:
             cashiers = {}
             return render_template("/ubrole.html",role=role,data=data,cashiers=cashiers)
@@ -457,8 +458,12 @@ def addstore():
         store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
         timestamp = datetime.now()
         timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        currentDate = datetime.now()
+        currentDate = currentDate.strftime("%Y-%m-%d")
         db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description) values (?,?,?,?,?,?)",timestamp, session.get("user_id"), store_id, "Add Store", "stores",f"Store: {name} with number {number} has been added to Stores.")
         db.execute("insert into stores (id, name) values(?,?)", number, name)
+        db.execute("insert into bankAccounts (user_id, store_id) values (?, ?)",session.get("user_id"), number)
+        db.execute("insert into c_date (store_id, user_id, cdate ) values (?, ?, ?)", number, session.get("user_id"), currentDate)
         flash(f"Store: {name} with number {number} has been added to Stores.")
 
         return redirect("/addstore", code=302)
@@ -472,8 +477,8 @@ def changestatus():
     role = "admin"
     if request.method == "GET":
       stores = db.execute("select * from stores where id != 0 and id != 100")
-      userInfo = db.execute("select users.username,users.id,stores.name, users.disable from users join stores on users.store_id = stores.id where users.store_id != 0 and users.store_id != 100")
-      cashiersInfo = db.execute("select cashiers.name as username, cashiers.id, stores.name, cashiers.disable from cashiers join stores on cashiers.store_id = stores.id")
+      userInfo = db.execute("select users.username,users.id,stores.name, users.disable from users join stores on users.store_id = stores.id where users.store_id != 0 and users.store_id != 100 order by users.username COLLATE NOCASE")
+      cashiersInfo = db.execute("select cashiers.name as username, cashiers.id, stores.name, cashiers.disable from cashiers join stores on cashiers.store_id = stores.id order by cashiers.name COLLATE NOCASE")
       return render_template("changestatus.html", role=role, stores=stores, userInfo=userInfo,cashiersInfo=cashiersInfo)
     else:
       if request.form.get("action") == "disablem":
@@ -629,35 +634,27 @@ def changepassword():
           return apology("YOUR NOT ADMIN.. OUT ->")
 
 
+
 # manager home
 @app.route("/home")
 @login_required
 def home():
-  checkid = db.execute("select is_manager from users where id = ?", session.get("user_id"))
-  if checkid[0]['is_manager'] == 1:
-    role ="manager"
-    uname = db.execute("select username,store_id from users where id = ?", session.get("user_id"))
-    store = db.execute("select name from stores where id = ?", uname[0]['store_id'])[0]['name']
-    cashiers = db.execute("select cashiers.name,cashiers.id  from cashiers where store_id = ? and disable = 0 order by cashiers.name COLLATE NOCASE",uname[0]['store_id'])
-    cdate = db.execute("select cdate from c_date where store_id = ?", uname[0]['store_id'])
-    if cdate:
-      zdate = cdate[0]['cdate']
-    else:
-      zdate=""
-    info = db.execute("select rate.id,rate.jod,rate.usd,c_date.cdate,rate.user_id from rate join c_date on rate.rdate = c_date.cdate where rate.store_id = ? and c_date.store_id = ?", uname[0]['store_id'],uname[0]['store_id'])
-    if info:
-      rateCheck = db.execute("select * from rate where id = ?", info[0]['id'])
-      if rateCheck:
-        if rateCheck[0]['disable'] == 1:
-          sstore=store
-          return homeview(cdate[0]['cdate'],sstore)
-      name = db.execute("select username from users where id = ?", info[0]['user_id'])
-      cname = db.execute("select username from users where id = ?",info[0]['user_id'])
-      if name:
-        dname = name[0]['username']
-        cashrep = db.execute("select * from cashreport where store_id = ? and cdate = ? order by cash_number" , uname[0]['store_id'], info[0]['cdate'])
-        zrep = db.execute("select * from cashzreport where store_id = ? and cdate = ? order by cash_number", uname[0]['store_id'], zdate)
-        ttlzview = {
+  uinfo = db.execute("select username,store_id, is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = 'manager'
+    store_id = uinfo[0]['store_id']
+    store_name = db.execute("select name from stores where id = ?", store_id)
+    if request.method == "GET":
+      cashiers = db.execute("select cashiers.name,cashiers.id  from cashiers where store_id = ? and disable = 0 order by cashiers.name COLLATE NOCASE",store_id)
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      rate = db.execute("select * from rate where rdate = ? and store_id = ?", cdate, store_id)
+      if rate:
+        rate_user = db.execute("select username from users where id = ?", rate[0]['user_id'])
+      cashrep = db.execute("select * from cashreport where store_id = ? and cdate = ? order by cash_number" , store_id, cdate)
+      zrep = db.execute("select * from cashzreport where store_id = ? and cdate = ? order by cash_number", store_id, cdate)
+      deposit = db.execute("select * from deposit where store_id = ? and cdate = ?", store_id, cdate)
+      
+      ttlzview = {
               'ils': 0.0,
               'usd': 0.0,
               'jod': 0.0,
@@ -672,87 +669,97 @@ def home():
               'ttl_x_report': 0.0,
               'diff': 0.0
             }
+      for i in zrep:
+        for x in ttlzview:
+          ttlzview[x] += i[x]
+          ttlzview[x] = round(ttlzview[x], 2)
+
+      zrepview = {}
+
+      ttlx = db.execute("select * from cashreport where store_id = ? and cdate = ? order by cash_number", store_id, cdate)
+      ttlview = {
+          'ils': 0.0,
+          'usd': 0.0,
+          'jod': 0.0,
+          'visa_palestine': 0.0,
+          'credit': 0.0,
+          'easy_life': 0.0,
+          'bcheck': 0.0,
+          'coupon': 0.0,
+          'jawwal_pay': 0.0,
+          'visa_arabi': 0.0,
+          'ttl_ils': 0.0,
+          'x_report': 0.0,
+          'diff': 0.0
+      }
+    
+      for i in ttlx:
+        for x in ttlview:
+          ttlview[x] += i[x]
+          ttlview[x] = round(ttlview[x], 2)
+      for entry in cashrep:
+        Found = False
+        for z in zrep:
+          if z['cash_number'] == entry['cash_number']:
+            Found = True
+            break
+        cash_number = entry['cash_number']
+        if not Found:
+          if cash_number in zrepview:
+            zrepview[cash_number]['x_report'] += entry['x_report']
+            zrepview[cash_number]['ttl_ils'] += entry['ttl_ils']
+            zrepview[cash_number]['diff'] += entry['diff']
+          else:
+            zrepview[cash_number] = {
+              'x_report' : entry['x_report'],
+              'ttl_ils' : entry['ttl_ils'],
+              'diff': entry['diff']
+            }
+        
+
+        ttlzview = {
+          'ils': 0.0,
+          'usd': 0.0,
+          'jod': 0.0,
+          'visa_palestine': 0.0,
+          'credit': 0.0,
+          'easy_life': 0.0,
+          'bcheck': 0.0,
+          'coupon': 0.0,
+          'jawwal_pay': 0.0,
+          'visa_arabi': 0.0,
+          'ttl_ils': 0.0,
+          'ttl_x_report': 0.0,
+          'diff': 0.0
+        }
         for i in zrep:
           for x in ttlzview:
             ttlzview[x] += i[x]
             ttlzview[x] = round(ttlzview[x], 2)
-
-        zrepview = {}
-        if cashrep:
-          ttlx = db.execute("select * from cashreport where store_id = ? and cdate = ? order by cash_number", uname[0]['store_id'],zdate)
-          ttlview = {
-              'ils': 0.0,
-              'usd': 0.0,
-              'jod': 0.0,
-              'visa_palestine': 0.0,
-              'credit': 0.0,
-              'easy_life': 0.0,
-              'bcheck': 0.0,
-              'coupon': 0.0,
-              'jawwal_pay': 0.0,
-              'visa_arabi': 0.0,
-              'ttl_ils': 0.0,
-              'x_report': 0.0,
-              'diff': 0.0
-          }
-        
-          for i in ttlx:
-            for x in ttlview:
-              ttlview[x] += i[x]
-              ttlview[x] = round(ttlview[x], 2)
-          for entry in cashrep:
-            Found = False
-            for z in zrep:
-              if z['cash_number'] == entry['cash_number']:
-                Found = True
-                break
-            cash_number = entry['cash_number']
-            if not Found:
-              if cash_number in zrepview:
-                zrepview[cash_number]['x_report'] += entry['x_report']
-                zrepview[cash_number]['ttl_ils'] += entry['ttl_ils']
-                zrepview[cash_number]['diff'] += entry['diff']
-              else:
-                zrepview[cash_number] = {
-                  'x_report' : entry['x_report'],
-                  'ttl_ils' : entry['ttl_ils'],
-                  'diff': entry['diff']
-                }
-          
-          if zrep:
-            ttlzview = {
-              'ils': 0.0,
-              'usd': 0.0,
-              'jod': 0.0,
-              'visa_palestine': 0.0,
-              'credit': 0.0,
-              'easy_life': 0.0,
-              'bcheck': 0.0,
-              'coupon': 0.0,
-              'jawwal_pay': 0.0,
-              'visa_arabi': 0.0,
-              'ttl_ils': 0.0,
-              'ttl_x_report': 0.0,
-              'diff': 0.0
-            }
-            for i in zrep:
-              for x in ttlzview:
-                ttlzview[x] += i[x]
-                ttlzview[x] = round(ttlzview[x], 2)
-            deposit = db.execute("select * from deposit where store_id = ? and cdate = ?", uname[0]['store_id'], zdate)
-
-            return render_template("/home.html",role=role, cashiers=cashiers, info=info, uname=uname, dname=dname, store = store, cashrep = cashrep, cdate=cdate, zrepview=zrepview, zrep = zrep, ttlview=ttlview, ttlzview=ttlzview,deposit=deposit,cname=cname)
-          else:
-            return render_template("/home.html",role=role, cashiers=cashiers, info=info, uname=uname, dname=dname, store = store, cashrep = cashrep, cdate=cdate, zrepview=zrepview, ttlview=ttlview, ttlzview=ttlzview,cname=cname)
-        else:
-          return render_template("/home.html",role=role, cashiers=cashiers, info=info, uname=uname, dname=dname, store = store,  cdate=cdate,cname=cname)
-        
-    return render_template("/home.html",role=role, cashiers=cashiers, uname=uname, store = store, cdate=cdate)
+            
+      rateCheck = db.execute("select * from rate where store_id = ? and rdate = ?", store_id, cdate)
+      if rateCheck:
+        if rateCheck[0]['disable'] == 1:
+          sstore=store_name[0]['name']
+          return homeview(cdate,sstore)
+      
+     
+      if deposit:
+        return render_template("/home.html",role=role, store_name=store_name, cashiers=cashiers, uinfo=uinfo,  rate=rate, rate_user=rate_user, cdate=cdate, cashrep = cashrep, zrepview=zrepview,ttlview=ttlview, ttlzview=ttlzview , deposit=deposit, zrep = zrep)
+      elif zrep:
+        return render_template("/home.html",role=role, store_name=store_name, cashiers=cashiers, uinfo=uinfo,  rate=rate, rate_user=rate_user, cdate=cdate, cashrep = cashrep, zrepview=zrepview,ttlview=ttlview, ttlzview=ttlzview, zrep=zrep)
+      elif cashrep:
+        return render_template("/home.html",role=role, store_name=store_name, cashiers=cashiers, uinfo=uinfo,  rate=rate, rate_user=rate_user, cdate=cdate, cashrep = cashrep, zrepview=zrepview,ttlview=ttlview, ttlzview=ttlzview)
+      elif rate:
+        return render_template("/home.html",role=role, store_name=store_name, cashiers=cashiers, uinfo=uinfo,  rate=rate, rate_user=rate_user, cdate=cdate)
+      else:
+       return render_template("/home.html",role=role, store_name=store_name, cashiers=cashiers, uinfo=uinfo, cdate=cdate)
+    else:
+      return apology("GATCHUAA METHOD NOT ALLOWED!")
   else:
-    return apology("YOUR NOT MANAGER GOT OUT OF HERE!")
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
 
-
-# update/create current_date
+# update current_date
 @app.route("/update_current_date", methods=["GET","POST"])
 @login_required
 def update_current_date():
@@ -764,21 +771,9 @@ def update_current_date():
       if not cdate:
         flash("You must select date!")
         return redirect("/home", code=302)
-      checkRate = db.execute("select * from rate where store_id = ? and rdate = ?",store_id,cdate)
-      if checkRate:
-        if checkRate[0]['disable'] == 1:
-          sstore = db.execute("select name from stores where id = ?", store_id)[0]['name']
-          return homeview(cdate,sstore)
+      
       
       cd_obj = datetime.strptime(cdate, "%Y-%m-%d")
-      try:
-        current_date = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
-      except IndexError:
-        db.execute("insert into c_date (store_id, user_id, cdate) values (?, ?, ?)", store_id, session.get("user_id"), cdate)
-        store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
-        timestamp = datetime.now()
-        timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description,movement_date) values (?,?,?,?,?,?,?)",timestamp, session.get("user_id"), store_id,"insert", "c_date",f"date created on store number {store_id}",cdate)
       current_date = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
       fcd_obj = datetime.strptime(current_date, "%Y-%m-%d")
 
@@ -790,11 +785,19 @@ def update_current_date():
           timestamp = datetime.now()
           timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
           db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description,movement_date) values (?,?,?,?,?,?,?)",timestamp, session.get("user_id"), store_id,"Update", "c_date",f"update date on store number {store_id}",cdate)
+          checkRate = db.execute("select * from rate where store_id = ? and rdate = ?",store_id,cdate)
+          
+          if checkRate:
+            if checkRate[0]['disable'] == 1:
+              sstore = db.execute("select name from stores where id = ?", store_id)[0]['name']
+              return homeview(cdate,sstore)
+          
           return redirect("/home", code=302)
     else:
         return redirect("/home", code=302)
   else:
     return apology("GET OUT OF HERE!")
+
 
 # add/update rate
 @app.route("/update_rate", methods=["GET","POST"])
@@ -826,7 +829,13 @@ def update_rate():
               return redirect("/home",code=302)
             checkifexists = db.execute("select * from rate where rdate = ? and store_id = ?", cdate , store_id)
             if checkifexists:
-                db.execute("update rate set user_id = ?, timestamp = CURRENT_TIMESTAMP,  usd = ? , jod = ?, timestamp = CURRENT_TIMESTAMP where rdate = ?", session.get("user_id"), usd, jod, cdate)
+              checkRate = db.execute("select * from rate where store_id = ? and rdate = ?",store_id,cdate)
+              if checkRate:
+                if checkRate[0]['disable'] == 1:
+                  sstore = db.execute("select name from stores where id = ?", store_id)[0]['name']
+                  flash("day is locked!")
+                  return homeview(cdate,sstore)
+                db.execute("update rate set user_id = ?, timestamp = CURRENT_TIMESTAMP,  usd = ? , jod = ?, timestamp = CURRENT_TIMESTAMP where rdate = ? and store_id = ?", session.get("user_id"), usd, jod, cdate, store_id)
                 store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
                 timestamp = datetime.now()
                 timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
@@ -841,6 +850,8 @@ def update_rate():
                 return redirect("/home", code=302)
     else:
       return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+ 
+ 
             
 @app.route("/cashxreport", methods=["GET","POST"])
 @login_required
@@ -977,7 +988,13 @@ def updatecashxreport():
       info = db.execute("select username, store_id from users where id = ?",session.get("user_id"))
       store_id = int(info[0]["store_id"])
       username = info[0]["username"]
-      crate = db.execute("select usd,jod from rate join c_date on rate.rdate = c_date.cdate where c_date.store_id = ?", store_id)
+      
+      row_id = int(request.form.get('row_id'))
+      cdate = db.execute("select cdate from cashreport where id = ?", row_id)
+      if cdate:
+        cdate = cdate[0]['cdate']
+      crate = db.execute("select * from rate where store_id = ? and rdate = ?", store_id,cdate)
+      
       rusd = crate[0]['usd']
       rjod = crate[0]['jod']
       iils = (request.form.get("ils"))
@@ -1049,8 +1066,7 @@ def updatecashxreport():
       else:
         x_report = float(ix_report)
       
-        
-      row_id = int(request.form.get("row_id"))
+
       ttl_cash = ils + (usd * rusd) + (jod * rjod) + ps_visa + credit + easylife + bcheck + coupon + jawwal_pay + arabi_visa
 
       ttl_cash = round(ttl_cash, 2)
@@ -1220,7 +1236,13 @@ def updatecashzreport():
     if uinfo[0]['is_manager'] == 1:
       store_id = int(db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id'])
       ccdate = db.execute("select cdate from c_date where store_id = ?", store_id)
-      crate = db.execute("select usd,jod from rate join c_date on rate.rdate = c_date.cdate where c_date.store_id = ?", store_id)
+      
+      row_id = int(request.form.get('row_id'))
+      cdate = db.execute("select cdate from cashzreport where id = ?", row_id)
+      if cdate:
+        cdate = cdate[0]['cdate']
+      crate = db.execute("select * from rate where store_id = ? and rdate = ?", store_id,cdate)
+      
       if not ccdate:
         flash("Date Not Found!!!")
         return redirect("/home",code=302)
@@ -1234,7 +1256,6 @@ def updatecashzreport():
       if not cash_number:
         flash("Cash Not Found!!")
         return redirect("/home",code=302)
-      # change zils_{cash_number}
       cash_number = str(cash_number)
       iils = (request.form.get("zils_" + cash_number))
       if not iils:
@@ -1494,10 +1515,19 @@ def deletedeposit():
   if request.method == "POST":
     uinfo = db.execute("select username,store_id, is_manager from users where id = ?", session.get("user_id"))
     if uinfo[0]['is_manager'] == 1:
-      
+    
       row_id = request.form.get("deposit_id")
       if row_id:
         row_id = int(row_id)
+        checkerKeys = db.execute("select cdate,store_id from deposit where id = ?", row_id)
+        if not checkerKeys:
+          return redirect("/home", code=302)
+        disable = db.execute("select disable from rate where store_id = ? and rdate = ?",checkerKeys[0]['store_id'],checkerKeys[0]['cdate'] )
+        if disable:
+          if disable[0]['disable'] == 1:
+            flash("Day is locked CANT BE DELETED")
+            return redirect("/home", code=302)
+          
         db.execute("delete from deposit where id= ?", row_id)
         store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
         cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
@@ -1519,6 +1549,154 @@ def acchome():
     if stores:
       return render_template("/acchome.html",role=role,stores=stores)
     return render_template("/acchome.html",role=role)
+  else:
+    return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
+
+
+
+# bank accounts
+@app.route("/bankAccounts", methods=["GET","POST"])
+@login_required
+def bankAccounts():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    role = 'is_accounting'
+    user = db.execute("select username from users where id = ?", session.get("user_id"))[0]
+    if request.method == "GET":
+      banks = db.execute("select bankAccounts.id, bankAccounts.store_id, users.username, bankAccounts.bankName, bankAccounts.accountNumber, bankAccounts.timestamp from bankAccounts join users on bankAccounts.user_id = users.id where bankAccounts.store_id != 0 and bankAccounts.store_id != 99 and bankAccounts.store_id != 100 order by bankAccounts.store_id")
+      if not banks:
+        flash("banks not found, call support")
+        return redirect("/acchome",code=302)
+
+      return render_template("/bankAccounts.html",role=role, banks=banks, user=user)
+  else:
+    return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
+
+
+# update bank accounts
+@app.route("/updateBankAccounts",methods=["POST"])
+@login_required
+def updateBankAccounts():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    role = 'is_accounting'
+    user = db.execute("select username from users where id = ?", session.get("user_id"))[0]
+    if request.method == "POST":
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Data not found! call support")
+        return redirect("/bankAccounts",code=302)
+        
+      bank = db.execute("select * from bankAccounts where id = ?", row_id)
+      if not bank:
+        flash("Data not found! call support")
+        return redirect("/bankAccounts",code=302)
+      return render_template("/updateBankAccounts.html",role=role, user=user, bank=bank)
+  else:
+    return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
+
+
+# apply updates for bank account
+@app.route("/updateBankAccountsdb",methods=["POST"])
+@login_required
+def updateBankAccountsdb():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    if request.method == "POST":
+      
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Data not found! call support")
+        return redirect("/bankAccounts",code=302)
+      else:
+        row_id = int(row_id)
+      bankName = request.form.get("bankName")
+      if not bankName:
+        flash("Make sure to fill the Bank Name and must be numbers only!")
+        return redirect("/bankAccounts",code=302)
+        
+      accountNumber = request.form.get("accountNumber")
+      if accountNumber:
+        accountNumber = int(accountNumber)
+      else:
+        flash("Make sure to fill Account Number and must be numbers only!")
+        return redirect("/bankAccounts",code=302)
+      
+      store_id = db.execute("select store_id from bankAccounts where id = ?", row_id)
+      if not store_id:
+        flash("Data not found! call support")
+        return redirect("/bankAccounts",code=302)
+      
+      store_id = store_id[0]['store_id']
+      timestamp = datetime.now()
+      db.execute("update bankAccounts set bankName = ? , accountNumber = ?, timestamp = ?, user_id = ? where id = ?",bankName , accountNumber, timestamp,session.get("user_id"), row_id)
+      
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description) values (?,?,?,?,?,?)",timestamp, session.get("user_id"), 99,"Update", "bankAccounts", f"updated values Bank Name: {bankName} -- Account Number: {accountNumber} for Bravo {store_id}")
+
+      return redirect("/bankAccounts",code=302)
+  else:
+    return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
+
+
+# JDECo Report
+@app.route("/JDECoReport",methods=["POST"])
+@login_required
+def JDECoReport():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    role = 'is_accounting'
+    user = db.execute("select username from users where id = ?", session.get("user_id"))[0]
+    if request.method=="POST":
+      FromDate = request.form.get("FromDate")
+      if not FromDate:
+        flash("you must select From Date")
+        return redirect("/acchome",code=302)
+      
+      ToDate = request.form.get("ToDate")
+      if not ToDate:
+        flash("you must select To Date")
+        return redirect("/acchome",code=302)
+      
+      store = request.form.get("storeSelect")
+      if not store:
+        flash("you must select Store")
+        return redirect("/acchome",code=302)
+      
+      fdate = datetime.strptime(FromDate ,"%Y-%m-%d")
+      tdate = datetime.strptime(ToDate,"%Y-%m-%d")
+      fdate -= timedelta(days=1) 
+      if fdate > tdate:
+        flash("From Date Error: The start date must be before the end date(To Date)")
+        return redirect("/acchome",code=302)
+      
+      store_id = db.execute("select id from stores where name = ?", store)
+      if not store_id:
+        flash("Error Selecting store CATCH YUAA")
+        return redirect("/acchome",code=302)
+      else:
+        store_id = store_id[0]['id']
+        
+      electricity = db.execute("select * from electricity where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+      if not electricity:
+        flash("no data found!")
+        return redirect("/acchome",code=302)
+
+      total = {
+        "holley1":0,
+        "holley2":0,
+        "invoices":0,
+        "actualSale":0,
+        "systemSale":0,
+        "diff":0
+        }
+      for line in electricity:
+        for x in total:
+            total[x] = total[x] + line[x]
+           
+      return render_template("/JDECoReport.html",role=role, electricity=electricity, total=total,user=user)
+    else:
+      return apology("NOT IN THIS WAY :)")
   else:
     return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
 
@@ -1586,17 +1764,19 @@ def report():
             ttlzview[x] += i[x]
             ttlzview[x] = round(ttlzview[x],2)
       deposit = db.execute("select * from deposit where store_id = ? and cdate = ?",store_id,sdate)
-      rate = db.execute("select rate.disable,rate.id,rate.rdate,rate.usd, rate.jod,users.username from rate join users on rate.user_id = users.id where rate.rdate = ? and rate.store_id = ?",sdate,store_id)
+      rate = db.execute("select * from rate where rdate = ? and store_id = ?",sdate, store_id)
+      if rate:
+        rate_user = db.execute("select username from users where id = ?", rate[0]['user_id'])
 
       if deposit:
 
-        return render_template("/report.html",role=role,store=sstore,cashx=cashx,cashz=cashz,deposit=deposit,uname=uname,sdate=sdate,rate=rate,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
+        return render_template("/report.html",role=role,store=sstore,cashx=cashx,cashz=cashz,deposit=deposit,uname=uname,sdate=sdate,rate=rate,rate_user=rate_user,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
       elif cashz:
-        return render_template("/report.html",role=role,store=sstore,cashx=cashx,cashz=cashz,uname=uname,rate=rate,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
+        return render_template("/report.html",role=role,store=sstore,cashx=cashx,cashz=cashz,uname=uname,rate=rate,rate_user=rate_user,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
       elif cashx:
-        return render_template("/report.html",role=role,store=sstore,cashx=cashx,uname=uname,rate=rate,ttlview=ttlview,stores=stores)
+        return render_template("/report.html",role=role,store=sstore,cashx=cashx,uname=uname,rate=rate,rate_user=rate_user,ttlview=ttlview,stores=stores)
       elif rate:
-        return render_template("/report.html",role=role,store=sstore,rate=rate,uname=uname,stores=stores)
+        return render_template("/report.html",role=role,store=sstore,rate=rate,rate_user=rate_user,uname=uname,stores=stores)
       elif stores:
         return render_template("/report.html",role=role,store=sstore,uname=uname,stores=stores)
       else:
@@ -1608,7 +1788,119 @@ def report():
         return render_template("/report.html",role=role,uname=uname)
   else:
     return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
+
+
+# CDCR Report
+@app.route("/CCRReport",methods=["POST"])
+@login_required
+def CCRReport():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    role = 'is_accounting'
+    if request.method =="POST":
+      
+      FromDate = request.form.get("FromDate")
+      if not FromDate:
+        flash("Must select From Date!")
+        return redirect("/rdeposit",code=302)
+      
+      ToDate = request.form.get("ToDate")
+      if not ToDate:
+        flash("Must select To Date!")
+        return redirect("/rdeposit",code=302)
+      
+      sstore = request.form.get("storeSelect")
+      if not FromDate or not sstore:
+        flash("Must select both date and store!")
+        return redirect("/acchome")
+      
+      store_id = db.execute("select id from stores where name =?", sstore)
+      if store_id:
+        store_id = store_id[0]['id']
+      else:
+        flash("store not found!")
+        return redirect("acchome",code=302)
+      
+      FromDate = datetime.strptime(FromDate ,"%Y-%m-%d")
+      ToDate = datetime.strptime(ToDate,"%Y-%m-%d")
+      tmp = FromDate
+      
+      dates=[]
+      
+      while tmp <= ToDate:
+        FromDate = tmp
+        FromDate = FromDate.strftime("%Y-%m-%d")
+        dates.append({"cdate":FromDate})
+        tmp += timedelta(days=1)
+      
+      DATA = False  
+      ttlview = []
+      for day in dates:
+        cashx = db.execute("select * from cashreport where store_id = ? and cdate = ?",store_id, day['cdate'])
+        if cashx:
+          TTLV = {
+              'cdate':"",
+              'ils': 0.0,
+              'usd': 0.0,
+              'jod': 0.0,
+              'visa_palestine': 0.0,
+              'credit': 0.0,
+              'easy_life': 0.0,
+              'bcheck': 0.0,
+              'coupon': 0.0,
+              'jawwal_pay': 0.0,
+              'visa_arabi': 0.0,
+              'ttl_ils': 0.0,
+              'x_report': 0.0,
+              'diff': 0.0
+            }
+          for i in cashx:
+            for x in TTLV:
+              if isinstance(TTLV[x],str):
+                TTLV[x] = day['cdate']
+              else:
+                TTLV[x] += i[x]
+                TTLV[x] = round(TTLV[x],2)
+                DATA = True
+              
+          ttlview.append(TTLV)
+
+        rate = db.execute("select * from rate where rdate = ?  and store_id = ?",day['cdate'], store_id)
+        for ttl in ttlview:
+            if day['cdate'] == ttl['cdate']:
+              ttl['rate_usd'] = rate[0]['usd']
+              ttl['rate_jod'] = rate[0]['jod']
+              ttl['disable'] = rate[0]['disable']
+        
+        deposit = db.execute("select * from deposit where cdate = ? and store_id = ?", day['cdate'], store_id)
+        for ttl2 in ttlview:
+          if deposit:
+            if day['cdate'] == ttl2['cdate']:
+              ttl2['deposit'] = 1
+              break
+          else:
+            if ttl2['cdate'] == day['cdate']:
+              ttl2['deposit'] = 0
+              break
+
+      cashx = {}
+      
+      if DATA:
+        return render_template("/CCRReport.html",role=role,sstore=sstore,ttlview=ttlview)
+      else:
+        flash("No Data Found!")
+        return redirect("acchome",code=302)
+    else:
+      return apology("METHOD NOT ALLOWED!")
+  else:
+    return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
   
+
+
+
+
+
+
 #deposit report
 @app.route("/rdeposit",methods=["GET","POST"])
 @login_required
@@ -1616,6 +1908,7 @@ def rdeposit():
   uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
   if uinfo[0]['is_manager'] == 1:
     role = "manager"
+    store = db.execute("select name from stores where id = ?", uinfo[0]['store_id'])[0]['name']
     if request.method=="GET":
       return render_template("rdeposit.html",role=role)
     else:
@@ -1627,7 +1920,11 @@ def rdeposit():
       if not tdate:
         flash("Must select To Date!")
         return redirect("/rdeposit",code=302)
+      
+      studNumber = request.form.get("studNumber")
+      notes = request.form.get("notes")
 
+        
       store_id = db.execute("select store_id from users where id = ?",session.get("user_id"))[0]['store_id']
       tdeposit = db.execute("select * from deposit where store_id = ? and cdate >= ? and cdate <= ?",store_id,fdate,tdate)
       if tdeposit:
@@ -1664,14 +1961,822 @@ def rdeposit():
 
         deposit = []
         deposit.append(ddeposit)
+        bankAccount = db.execute("select * from bankAccounts where store_id = ?", store_id)
+              
+        if bankAccount:
+
+          electricity = db.execute("select * from electricity where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+          palpay = db.execute("select * from palpay where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+          
+          if palpay:
+            total_palpay = {"cash_ils":0, "cash_usd":0, "cash_jod":0}
+            for line in palpay:
+              for x in total_palpay:
+                total_palpay[x] = total_palpay[x] + line[x]
+                
+          if electricity:
+            total_electricity = {"actualSale":0}
+            for line in electricity:
+              for x in total_electricity:
+                  total_electricity[x] = total_electricity[x] + line[x]
+          
+          #convert lists to json string (something hot and new :D)
+          if tdeposit:
+            deposit_json = json.dumps(tdeposit)
+          else:
+            deposit_json = None
             
-        return render_template("/rdeposit.html", role=role, deposit=deposit,dates=dates)
+          if bankAccount:
+            bankAccount_json = json.dumps(bankAccount)
+          else:
+            bankAccount_json = None
+          
+          if electricity:
+            electricity_json = json.dumps(electricity)
+          else:
+            electricity_json = None
+            
+          if palpay:
+            palpay_json = json.dumps(palpay)
+          else:
+            palpay_json = None
+            
+          if dates: 
+            dates_json = json.dumps(dates)
+          else:
+            dates_json = None
+          
+          
+          timestamp = datetime.now()
+          timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+          
+          
+          
+          
+          db.execute("insert into deposit_report (store_id, user_id, deposit_json, bankAccount_json, electricity_json, palpay_json, dates_json, role, store, fdate, tdate, studNumber, notes, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", store_id, session.get("user_id"), deposit_json, bankAccount_json, electricity_json, palpay_json, dates_json, role, store, fdate, tdate, studNumber, notes, timestamp)
+          db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description,movement_date) values (?,?,?,?,?,?,?)",timestamp, session.get("user_id"), store_id,"Insert", "deposit_report", f"inserted values:\nstore_id: { store_id } user_id: { session.get('user_id') } deposit_json: { deposit_json } bankAccount_json: { bankAccount_json } electricity_json: { electricity_json } palpay_json: { palpay_json } dates_json: { dates_json } role: { role } store: { store } fdate: { fdate } tdate: { tdate } studNumber: { studNumber } notes: {notes  } timestamp: { timestamp }",fdate)
+          
+          bankAccount=bankAccount[0]
+          
+          if electricity and palpay:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, total_electricity=total_electricity, notes=notes, total_palpay=total_palpay)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, total_electricity=total_electricity, notes=notes, total_palpay=total_palpay)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, total_electricity=total_electricity, total_palpay=total_palpay)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, total_electricity=total_electricity, total_palpay=total_palpay)
+          elif electricity:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, total_electricity=total_electricity, notes=notes)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, total_electricity=total_electricity, notes=notes)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, total_electricity=total_electricity)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, total_electricity=total_electricity)
+          elif palpay:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, notes=notes, total_palpay=total_palpay)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, notes=notes, total_palpay=total_palpay)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, total_palpay=total_palpay)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, total_palpay=total_palpay)
+          else:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber, notes=notes)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, notes=notes)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount, studNumber=studNumber)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, bankAccount=bankAccount)
+            
+        else:
+          electricity = db.execute("select * from electricity where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+          palpay = db.execute("select * from palpay where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+          
+          if palpay:
+            total_palpay = {"cash_ils":0, "cash_usd":0, "cash_jod":0}
+            for line in palpay:
+              for x in total_palpay:
+                total_palpay[x] = total_palpay[x] + line[x]
+                
+          if electricity:
+            total_electricity = {"actualSale":0}
+            for line in electricity:
+              for x in total_electricity:
+                  total_electricity[x] = total_electricity[x] + line[x]
+          
+          #convert lists to json string (something hot and new :D)
+
+          deposit_json = json.dumps(tdeposit)
+          electricity_json = json.dumps(electricity)
+          palpay_json = json.dumps(palpay)
+          dates_json = json.dumps(dates)
+          
+          timestamp = datetime.now()
+          timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+          
+          db.execute("insert into deposit_report (store_id, user_id, deposit_json, electricity_json, palpay_json, dates_json, role, store, fdate, tdate, studNumber, notes, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", store_id, session.get("user_id"), deposit_json, electricity_json, palpay_json, dates_json, role, store, fdate, tdate, studNumber, notes, timestamp)
+          db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description,movement_date) values (?,?,?,?,?,?,?)",timestamp, session.get("user_id"), store_id,"Insert", "deposit_report", f"inserted values:\nstore_id: { store_id } user_id: { session.get('user_id') } deposit_json: { deposit_json } electricity_json: { electricity_json } palpay_json: { palpay_json } dates_json: { dates_json } role: { role } store: { store } fdate: { fdate } tdate: { tdate } studNumber: { studNumber } notes: {notes  } timestamp: { timestamp }",fdate)
+
+          if electricity and palpay:
+           
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, total_electricity=total_electricity, notes=notes, total_palpay=total_palpay)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, total_electricity=total_electricity, notes=notes, total_palpay=total_palpay)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, total_electricity=total_electricity, total_palpay=total_palpay)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, total_electricity=total_electricity, total_palpay=total_palpay)
+          elif electricity:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, total_electricity=total_electricity, notes=notes)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, total_electricity=total_electricity, notes=notes)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, total_electricity=total_electricity)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, total_electricity=total_electricity)
+          elif palpay:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, notes=notes, total_palpay=total_palpay)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, notes=notes, total_palpay=total_palpay)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, total_palpay=total_palpay)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, total_palpay=total_palpay)
+          else:
+            if studNumber and notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber, notes=notes)
+            elif notes:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, notes=notes)
+            elif studNumber:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store, studNumber=studNumber)
+            else:
+              return render_template("/bankreport.html", role=role, deposit=deposit,dates=dates,store=store)
       else:
         flash("Data Not Found")
         return redirect("/rdeposit",code=302)
   else:
     return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+# Services
+@app.route("/services", methods=["GET","POST"])
+@login_required
+def services():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method == "GET":
+      store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      
+      checkRate = db.execute("select * from rate where store_id = ? and rdate = ?",store_id,cdate)
+      if checkRate:
+        if checkRate[0]['disable'] == 1:
+          return redirect("/servicesView",code=302)
+      
+      
+      currentDate = cdate
+      electricity = db.execute("select * from electricity where cdate = ? and store_id = ?", cdate, store_id)
+      if electricity:
+        electricity=electricity[0]
+      palpay = db.execute("select * from palpay where store_id = ? and cdate = ?", store_id, cdate)
+      if palpay:
+        palpay=palpay[0]
+      if electricity and palpay:
+          return render_template("/services.html",role=role, electricity=electricity, cdate=cdate, Userame=Userame, currentDate=currentDate, palpay=palpay)
+      elif electricity:
+        return render_template("/services.html",role=role, electricity=electricity, cdate=cdate, Userame=Userame, currentDate=currentDate)
+      elif palpay:
+        return render_template("/services.html",role=role, palpay=palpay, cdate=cdate, Userame=Userame, currentDate=currentDate)
+      
+      return render_template("/services.html",role=role, Userame=Userame, currentDate=currentDate)
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+# services view
+@app.route("/servicesView")
+@login_required
+def servicesView():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method == "GET":
+      store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      currentDate = cdate
+      electricity = db.execute("select * from electricity where cdate = ? and store_id = ?", cdate, store_id)
+      if electricity:
+        electricity=electricity[0]
+        
+      palpay = db.execute("select * from palpay where store_id = ? and cdate = ?", store_id, cdate)
+      if palpay:
+        palpay=palpay[0]
+        
+      if electricity and palpay:
+          return render_template("/servicesView.html",role=role, electricity=electricity, cdate=cdate, Userame=Userame, currentDate=currentDate, palpay=palpay)
+      elif electricity:
+        return render_template("/servicesView.html",role=role, electricity=electricity, cdate=cdate, Userame=Userame, currentDate=currentDate)
+      elif palpay:
+        return render_template("/servicesView.html",role=role, palpay=palpay, cdate=cdate, Userame=Userame, currentDate=currentDate)
+      return render_template("/servicesView.html",role=role, Userame=Userame, currentDate=currentDate)
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
   
+  
+# electricity
+@app.route("/electricity",methods=["POST"])
+@login_required
+def electricity():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    if request.method == "POST":
+      store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      currentDate = cdate
+      holley1 = (request.form.get("holley1"))
+      if not holley1:
+        holley1 = 0
+      else:
+        holley1 = float(holley1)
+      
+      holley2 = (request.form.get("holley2"))
+      if not holley2:
+        holley2 = 0
+      else:
+        holley2 = float(holley2)
+        
+      invoices = (request.form.get("invoices"))
+      if not invoices:
+        invoices = 0
+      else:
+        invoices = float(invoices)
+      
+      actualSale = request.form.get("actualSale")
+      if not actualSale:
+        actualSale = 0
+      else:
+        actualSale = float(actualSale)
+      if actualSale == 0:
+        flash("Actual Sale must be more than 0")
+        return redirect("/services",code=302)
+      
+      systemSale = holley1 + holley2 + invoices
+      if not systemSale:
+        systemSale = 0
+
+      if systemSale <=0:
+        flash("System Sale must be more than 0")
+        return redirect("/services",code=302)
+      
+      difference = actualSale - systemSale
+      if not difference:
+        difference = 0
+
+      
+      balance = (request.form.get("balance"))
+      if not balance:
+        balance = 0
+      else:
+        balance = float(balance)
+      
+      notes = (request.form.get("notes"))
+      if not notes:
+        notes = ""
+      electricity = db.execute("select * from electricity where cdate = ? and store_id = ?", cdate, store_id)
+      if electricity:
+        flash("Data already exisit for this day")
+        return redirect("/services",code=302)
+      
+      db.execute("insert into electricity (user_id, store_id, holley1, holley2, invoices, actualSale, systemSale, diff, remainingBalance, notes, cdate) values (?,?,?,?,?,?,?,?,?,?,?)", session.get("user_id"), store_id, holley1, holley2, invoices, actualSale, systemSale, difference, balance, notes, cdate )
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into user_movements (timestamp,user_id, store_id, movement_type, m_table, m_description,movement_date) values (?,?,?,?,?,?,?)",timestamp, session.get("user_id"), store_id,"Insert", "electricity", f"inserted values  holley1: {holley1}, holley2: {holley2}, invoices: {invoices}, actualSale: {actualSale}, systemSale: {systemSale}, difference: {difference}, balance: {balance}, notes: {notes}",cdate)
+      return redirect("/services",code=302)
+    else:
+      return apology("METHOD NOT ALLOWED!!!")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+# edit electricity
+@app.route("/editElectricity", methods=["GET","POST"])
+@login_required
+def editElectricity():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method =="POST":
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Table not found!")
+        return redirect("/services",code=302)
+      cdate = db.execute("select cdate from c_date where store_id = ?", uinfo[0]['store_id'])[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      currentDate = cdate
+      electricity = db.execute("select * from electricity where id = ?", row_id)
+      electricity = electricity[0]
+      
+      return render_template("/editElectricity.html",role=role, electricity=electricity, Userame=Userame, currentDate=currentDate)
+    
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")    
+
+
+# delete electricity
+@app.route("/deleteElectricity", methods=["POST"])
+@login_required
+def deleteElectricity():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    if request.method =="POST":
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Table not found!")
+        return redirect("/services",code=302)
+      cdate = db.execute("select cdate from electricity where id = ?", row_id)[0]['cdate']
+      db.execute("delete from electricity where id = ?", row_id)
+      
+      store_id = db.execute("select store_id from users where id = ?",session.get("user_id"))[0]['store_id']
+      
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description, movement_date, timestamp) values(?,?,?,?,?,?,?)",session.get("user_id"),store_id,"Delete","electricity",f"data has been deleted from store {store_id}",cdate,timestamp)
+      
+      
+      flash("Table has been deleted successfully")
+      return redirect("/services",code=302)
+    
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")  
+  
+
+
+# update electricity
+@app.route("/updateElectricity",methods=["POST"])
+@login_required
+def updateElectricity():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    if request.method =="POST":
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Table not found!")
+        return redirect("/services",code=302)
+
+      store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      holley1 = (request.form.get("holley1"))
+      if not holley1:
+        holley1 = 0
+      else:
+        holley1 = float(holley1)
+      
+      holley2 = (request.form.get("holley2"))
+      if not holley2:
+        holley2 = 0
+      else:
+        holley2 = float(holley2)
+        
+      invoices = (request.form.get("invoices"))
+      if not invoices:
+        invoices = 0
+      else:
+        invoices = float(invoices)
+      
+      actualSale = request.form.get("actualSale")
+      if not actualSale:
+        actualSale = 0
+      else:
+        actualSale = float(actualSale)
+        
+      if actualSale == 0:
+        flash("Actual Sale must be more than 0")
+        return redirect("/services",code=302)
+      
+      systemSale = holley1 + holley2 + invoices
+      if not systemSale:
+        systemSale = 0
+
+      if systemSale <=0:
+        flash("System Sale must be more than 0")
+        return redirect("/services",code=302)
+      
+      difference = actualSale - systemSale
+      if not difference:
+        difference = 0
+
+      
+      balance = (request.form.get("balance"))
+      if not balance:
+        balance = 0
+      else:
+        balance = float(balance)
+      
+      notes = (request.form.get("notes"))
+      if not notes:
+        notes = ""
+      
+      db.execute("update electricity set user_id = ?, holley1 = ?, holley2 = ?, invoices = ?, actualSale = ?, systemSale = ?, diff = ?, remainingBalance = ?, notes = ? where id = ?", session.get("user_id"), holley1, holley2, invoices, actualSale, systemSale, difference, balance, notes, row_id)
+
+      cdate = db.execute("select cdate from electricity where id = ?", row_id)[0]['cdate']
+      store_id = db.execute("select store_id from users where id = ?",session.get("user_id"))[0]['store_id']
+      
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description, movement_date, timestamp) values(?,?,?,?,?,?,?)",session.get("user_id"),store_id,"Update","electricity",f"data has been Updated from store {store_id}, values :\nholley1: {holley1}, holley2: {holley2}, invoices: {invoices}, actualSale: {actualSale}, systemSale: {systemSale}, diff: {difference}, remainingBalance: {balance}, notes: {notes}",cdate,timestamp)
+      
+      
+      flash("Table has been Updated successfully")
+      return redirect("/services",code=302)
+    
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")  
+
+
+# palpay
+@app.route("/palpay",methods=["POST"])
+@login_required
+def palpay():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    if request.method == "POST":
+      store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      currentDate = cdate
+      
+      sys_ils = request.form.get("sys_ils")
+      if not sys_ils:
+        sys_ils = 0
+      else:
+        sys_ils = float(sys_ils)
+        
+      cash_ils = request.form.get("cash_ils")
+      if not cash_ils:
+        cash_ils = 0
+      else:
+        cash_ils = float(cash_ils)
+        
+      visa_ils = request.form.get("visa_ils")
+      if not visa_ils:
+        visa_ils = 0
+      else:
+        visa_ils= float(visa_ils)
+        
+      ttl_ils = float(cash_ils + visa_ils)
+        
+      diff_ils = float(sys_ils - ttl_ils)
+        
+      note_ils = request.form.get("note_ils")
+      if not note_ils:
+        note_ils = ""
+
+      sys_usd = request.form.get("sys_usd")
+      if not sys_usd:
+        sys_usd = 0
+      else:
+        sys_usd = float(sys_usd)
+        
+      cash_usd = request.form.get("cash_usd")
+      if not cash_usd:
+        cash_usd = 0
+      else:
+        cash_usd = float(cash_usd)
+        
+      visa_usd = request.form.get("visa_usd")
+      if not visa_usd:
+        visa_usd = 0
+      else:
+        visa_usd= float(visa_usd)
+        
+      ttl_usd = float(cash_usd + visa_usd)
+        
+      diff_usd = float(sys_usd - ttl_usd)
+        
+      note_usd = request.form.get("note_usd")
+      if not note_usd:
+        note_usd = ""
+        
+      sys_jod = request.form.get("sys_jod")
+      if not sys_jod:
+        sys_jod = 0
+      else:
+        sys_jod = float(sys_jod)
+        
+      cash_jod = request.form.get("cash_jod")
+      if not cash_jod:
+        cash_jod = 0
+      else:
+        cash_jod = float(cash_jod)
+        
+      visa_jod = request.form.get("visa_jod")
+      if not visa_jod:
+        visa_jod = 0
+      else:
+        visa_jod= float(visa_jod)
+        
+      ttl_jod = float(cash_jod + visa_jod)
+        
+      diff_jod = float(sys_jod - ttl_jod)
+        
+      note_jod = request.form.get("note_jod")
+      if not note_jod:
+        note_jod = ""  
+      
+      x = ttl_ils + ttl_usd + ttl_jod
+      if x <= 0:
+        flash("Total income must be more than 0")
+        return redirect("/services",code=302)
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into palpay (store_id, user_id, sys_ils, cash_ils, visa_ils, ttl_ils, diff_ils, note_ils, sys_usd, cash_usd, visa_usd, ttl_usd, diff_usd, note_usd, sys_jod, cash_jod, visa_jod, ttl_jod, diff_jod, note_jod, cdate, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",store_id, session.get("user_id"), sys_ils, cash_ils, visa_ils, ttl_ils, diff_ils, note_ils, sys_usd, cash_usd, visa_usd, ttl_usd, diff_usd, note_usd, sys_jod, cash_jod, visa_jod, ttl_jod, diff_jod, note_jod, cdate, timestamp)
+      db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description, movement_date, timestamp) values(?,?,?,?,?,?,?)",session.get("user_id"),store_id,"Insert","palpay",f"values sys_ils: { sys_ils} cash_ils: {cash_ils} visa_ils: {visa_ils} ttl_ils: { ttl_ils} diff_ils: {diff_ils} note_ils: {note_ils} sys_usd: { sys_usd} cash_usd: {cash_usd} visa_usd: {visa_usd} ttl_usd: { ttl_usd} diff_usd: {diff_usd} note_usd: {note_usd} sys_jod: { sys_jod} cash_jod: {cash_jod} visa_jod: {visa_jod} ttl_jod: { ttl_jod} diff_jod: {diff_jod} note_jod: {note_jod} ", cdate, timestamp)
+      return redirect("/services",code=302)
+    else:
+      return apology("GATCHYAA GET OUT :)")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+
+# edit palpay
+@app.route("/editPalpay",methods=["POST"])
+@login_required
+def editPalpay():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method == "POST":
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Data not found, Call Support!")
+        return redirect("/services",code=302)
+      palpay = db.execute("select * from palpay where id = ?", row_id)
+      if not palpay:
+        flash("Data not found, Call Support!")
+        return redirect("/services",code=302)
+      palpay = palpay[0]
+      currentDate = palpay['cdate']
+      return render_template("/editPalpay.html",role=role, palpay=palpay, cdate=currentDate, Userame=Userame, currentDate=currentDate)
+    else:
+      return apology("Method not allowed :)")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+# delete palpay
+@app.route("/deletePalpay",methods=["POST"])
+@login_required
+def deletePalpay():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method == "POST":
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Data not found, Call Support!")
+        return redirect("/services",code=302)
+      palpay = db.execute("select * from palpay where id = ?", row_id)
+      if not palpay:
+        flash("Data not found, Call Support!")
+        return redirect("/services",code=302)
+      palpay = palpay[0]
+      
+      cdate = db.execute("select cdate from palpay where id = ?", row_id)[0]['cdate']
+      db.execute("delete from palpay where id = ?", row_id)
+      
+      store_id = db.execute("select store_id from users where id = ?",session.get("user_id"))[0]['store_id']
+      
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description, movement_date, timestamp) values(?,?,?,?,?,?,?)",session.get("user_id"),store_id,"Delete","palpay",f"data has been deleted from store {store_id}, values:\n{palpay}",cdate,timestamp)
+      flash("Table has been deleted successfully!")
+      return redirect("/services",code=302)
+    else:
+      return apology("Method not allowed :)")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+# update palpay
+@app.route("/updatePalpay",methods=["POST"])
+@login_required
+def updatePalpay():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    if request.method == "POST":
+      store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
+      cdate = db.execute("select cdate from c_date where store_id = ?", store_id)[0]['cdate']
+      if not cdate:
+        flash("Please select date first!")
+        return redirect("/home",code=302)
+      currentDate = cdate
+      row_id = request.form.get("row_id")
+      if not row_id:
+        flash("Data not found, Call Support!")
+        return redirect("/services",code=302)
+      
+      sys_ils = request.form.get("sys_ils")
+      if not sys_ils:
+        sys_ils = 0
+      else:
+        sys_ils = float(sys_ils)
+        
+      cash_ils = request.form.get("cash_ils")
+      if not cash_ils:
+        cash_ils = 0
+      else:
+        cash_ils = float(cash_ils)
+        
+      visa_ils = request.form.get("visa_ils")
+      if not visa_ils:
+        visa_ils = 0
+      else:
+        visa_ils= float(visa_ils)
+        
+      ttl_ils = float(cash_ils + visa_ils)
+        
+      diff_ils = float(sys_ils - ttl_ils)
+        
+      note_ils = request.form.get("note_ils")
+      if not note_ils:
+        note_ils = ""
+
+      sys_usd = request.form.get("sys_usd")
+      if not sys_usd:
+        sys_usd = 0
+      else:
+        sys_usd = float(sys_usd)
+        
+      cash_usd = request.form.get("cash_usd")
+      if not cash_usd:
+        cash_usd = 0
+      else:
+        cash_usd = float(cash_usd)
+        
+      visa_usd = request.form.get("visa_usd")
+      if not visa_usd:
+        visa_usd = 0
+      else:
+        visa_usd= float(visa_usd)
+        
+      ttl_usd = float(cash_usd + visa_usd)
+        
+      diff_usd = float(sys_usd - ttl_usd)
+        
+      note_usd = request.form.get("note_usd")
+      if not note_usd:
+        note_usd = ""
+        
+      sys_jod = request.form.get("sys_jod")
+      if not sys_jod:
+        sys_jod = 0
+      else:
+        sys_jod = float(sys_jod)
+        
+      cash_jod = request.form.get("cash_jod")
+      if not cash_jod:
+        cash_jod = 0
+      else:
+        cash_jod = float(cash_jod)
+        
+      visa_jod = request.form.get("visa_jod")
+      if not visa_jod:
+        visa_jod = 0
+      else:
+        visa_jod= float(visa_jod)
+        
+      ttl_jod = float(cash_jod + visa_jod)
+        
+      diff_jod = float(sys_jod - ttl_jod)
+        
+      note_jod = request.form.get("note_jod")
+      if not note_jod:
+        note_jod = ""  
+      
+      x = ttl_ils + ttl_usd + ttl_jod
+      if x <= 0:
+        flash("Total income must be more than 0")
+        return redirect("/services",code=302)
+      timestamp = datetime.now()
+      timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      db.execute("update palpay set user_id = ?, sys_ils = ?, cash_ils = ?, visa_ils = ?, ttl_ils = ?, diff_ils = ?, note_ils = ?, sys_usd = ?, cash_usd = ?, visa_usd = ?, ttl_usd = ?, diff_usd = ?, note_usd = ?, sys_jod = ?, cash_jod = ?, visa_jod = ?, ttl_jod = ?, diff_jod = ?, note_jod = ?, cdate = ?, timestamp = ? where id = ?", session.get("user_id"), sys_ils, cash_ils, visa_ils, ttl_ils, diff_ils, note_ils, sys_usd, cash_usd, visa_usd, ttl_usd, diff_usd, note_usd, sys_jod, cash_jod, visa_jod, ttl_jod, diff_jod, note_jod, cdate, timestamp, row_id)
+      db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description, movement_date, timestamp) values(?,?,?,?,?,?,?)",session.get("user_id"),store_id,"Update","palpay",f"values sys_ils: { sys_ils} cash_ils: {cash_ils} visa_ils: {visa_ils} ttl_ils: { ttl_ils} diff_ils: {diff_ils} note_ils: {note_ils} sys_usd: { sys_usd} cash_usd: {cash_usd} visa_usd: {visa_usd} ttl_usd: { ttl_usd} diff_usd: {diff_usd} note_usd: {note_usd} sys_jod: { sys_jod} cash_jod: {cash_jod} visa_jod: {visa_jod} ttl_jod: { ttl_jod} diff_jod: {diff_jod} note_jod: {note_jod} ", cdate, timestamp)
+      flash("Palpay table has beed updated successfully")
+      return redirect("/services",code=302)
+    else:
+      return apology("GATCHYAA GET OUT :)")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+
+# palpay report
+@app.route("/palpayReport",methods=["POST"])
+@login_required
+def palpayReport():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    role = 'is_accounting'
+    user = db.execute("select username from users where id = ?", session.get("user_id"))[0]
+    if request.method =="POST":
+      FromDate = request.form.get("FromDate")
+      if not FromDate:
+        flash("you must select From Date")
+        return redirect("/acchome",code=302)
+      
+      ToDate = request.form.get("ToDate")
+      if not ToDate:
+        flash("you must select To Date")
+        return redirect("/acchome",code=302)
+      
+      store = request.form.get("storeSelect")
+      if not store:
+        flash("you must select Store")
+        return redirect("/acchome",code=302)
+      
+      fdate = datetime.strptime(FromDate ,"%Y-%m-%d")
+      tdate = datetime.strptime(ToDate,"%Y-%m-%d")
+      fdate -= timedelta(days=1)
+      if fdate > tdate:
+        flash("From Date Error: The start date must be before the end date(To Date)")
+        return redirect("/acchome",code=302)
+      
+      store_id = db.execute("select id from stores where name = ?", store)
+      if not store_id:
+        flash("Error Selecting store CATCH YUAA")
+        return redirect("/acchome",code=302)
+      else:
+        store_id = store_id[0]['id']
+      
+      palpay = db.execute("select * from palpay where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+      if not palpay:
+        flash("no data found!")
+        return redirect("/acchome",code=302)
+      total = {
+        "sys_ils":0,
+        "cash_ils":0,
+        "visa_ils":0,
+        "ttl_ils":0,
+        "diff_ils":0,
+        "sys_usd":0,
+        "cash_usd":0,
+        "visa_usd":0,
+        "ttl_usd":0,
+        "diff_usd":0,
+        "sys_jod":0,
+        "cash_jod":0,
+        "visa_jod":0,
+        "ttl_jod":0,
+        "diff_jod":0,
+        }
+      for line in palpay:
+        for x in total:
+            total[x] = total[x] + line[x]
+            
+      return render_template("/palpayReport.html",role=role, palpay=palpay, total=total,user=user)
+           
+    else:
+      return apology("GATCHYAA METHOD NOT ALLOWED")
+  else:
+    return apology("UR NOT ACCOUNTER GET OUT OF HERE!")
 # Lock day work for manager
 @app.route("/lockday",methods=["GET","POST"])
 @login_required
@@ -1711,8 +2816,199 @@ def lockday():
       return apology("NOT IN THIS WAY :)")
   else:
     return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
-  
-  
+
+# JDECo Manager Report
+@app.route("/JDECoMReport",methods=["POST"])
+@login_required
+def JDECoMReport():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method == "POST":
+      FromDate = request.form.get("FromDate")
+      if not FromDate:
+        flash("you must select From Date")
+        return redirect("/rdeposit",code=302)
+      
+      ToDate = request.form.get("ToDate")
+      if not ToDate:
+        flash("you must select To Date")
+        return redirect("/rdeposit",code=302)
+      
+      store = db.execute("select name from stores where id = ?", uinfo[0]['store_id'])
+      if not store:
+        flash("Store not found, Call support")
+        return redirect("/rdeposit",code=302)
+      store = store[0]['name']
+      fdate = datetime.strptime(FromDate ,"%Y-%m-%d")
+      tdate = datetime.strptime(ToDate,"%Y-%m-%d")
+      fdate -= timedelta(days=1) 
+      if fdate > tdate:
+        flash("Error: (From Date) must be before (To Date)")
+        return redirect("/rdeposit",code=302)
+      
+      store_id = db.execute("select id from stores where name = ?", store)
+      if not store_id:
+        flash("Error Selecting store CATCH YUAA")
+        return redirect("/rdeposit",code=302)
+      else:
+        store_id = store_id[0]['id']
+        
+      electricity = db.execute("select actualSale,cdate from electricity where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+      if not electricity:
+        flash("no data found!")
+        return redirect("/rdeposit",code=302)
+      dates = []
+      actualSale = 0
+      for x in electricity:
+        dates.append(x['cdate'])
+        actualSale = actualSale + x['actualSale']
+
+      if actualSale == 0:
+        flash("Actual sales is 0, no need for the report")
+        return redirect("/rdeposit",code=302)
+      #testing
+      #timestamp = datetime.now()
+      #timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+      #db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description, movement_date, timestamp) values(?,?,?,?,?,?,?)",session.get("user_id"),store_id,"Delete","palpay",f"data has been deleted from store {store_id}, values:\n{palpay}",cdate,timestamp)
+
+      return render_template("/JDECoMReport.html",store=store, dates=dates, actualSale=actualSale)
+    else:
+      return apology("Method not allowed :)")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+#palpay Manager Report
+@app.route("/palpayMReport",methods=["POST"])
+@login_required
+def palpayMReport():
+  uinfo = db.execute("select username,store_id,is_manager from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_manager'] == 1:
+    role = "manager"
+    Userame = uinfo[0]['username']
+    if request.method == "POST":
+      FromDate = request.form.get("FromDate")
+      if not FromDate:
+        flash("you must select From Date")
+        return redirect("/rdeposit",code=302)
+      
+      ToDate = request.form.get("ToDate")
+      if not ToDate:
+        flash("you must select To Date")
+        return redirect("/rdeposit",code=302)
+      
+      store = db.execute("select name from stores where id = ?", uinfo[0]['store_id'])
+      if not store:
+        flash("Store not found, Call support")
+        return redirect("/rdeposit",code=302)
+      store = store[0]['name']
+      fdate = datetime.strptime(FromDate ,"%Y-%m-%d")
+      tdate = datetime.strptime(ToDate,"%Y-%m-%d")
+      fdate -= timedelta(days=1) 
+      if fdate > tdate:
+        flash("Error: (From Date) must be before (To Date)")
+        return redirect("/rdeposit",code=302)
+      
+      store_id = db.execute("select id from stores where name = ?", store)
+      if not store_id:
+        flash("Error Selecting store CATCH YUAA")
+        return redirect("/rdeposit",code=302)
+      else:
+        store_id = store_id[0]['id']
+        
+      palpay = db.execute("select cash_ils, cash_usd, cash_jod, cdate from palpay where store_id = ? and cdate >= ? and cdate <= ? order by cdate",store_id, fdate, tdate)
+      if not palpay:
+        flash("no data found!")
+        return redirect("/rdeposit",code=302)      
+      dates = []
+      cash_ils = 0
+      cash_usd = 0
+      cash_jod = 0
+      for x in palpay:
+        dates.append(x['cdate'])
+        cash_ils = cash_ils + x['cash_ils']
+        cash_usd = cash_usd + x['cash_usd']
+        cash_jod = cash_jod + x['cash_jod']
+        
+      return render_template("/palpayMReport.html",store=store, dates=dates, cash_ils=cash_ils, cash_usd=cash_usd, cash_jod=cash_jod)
+    else:
+      return apology("Method not allowed :)")
+  else:
+    return apology("YOUR NOT MANAGER GET OUT OF HERE!")
+
+
+
+# deposit report
+@app.route("/depositReport",methods=["POST"])
+@login_required
+def depositReport():
+  uinfo = db.execute("select username,store_id,is_accounting from users where id = ?", session.get("user_id"))
+  if uinfo[0]['is_accounting'] == 1:
+    if request.method =="POST":
+      sdate = request.form.get("selected_date")
+      sstore = request.form.get("storeSelect")
+      if not sdate or not sstore:
+        flash("Must select both date and store!")
+        return redirect("/acchome")
+      store_id = db.execute("select id from stores where name =?", sstore)
+      if store_id:
+        store_id = store_id[0]['id']
+      else:
+        flash("store not found!")
+        return redirect("acchome",code=302)
+      
+      sdate = datetime.strptime(sdate, '%Y-%m-%d')
+      tdate = sdate.strftime('%Y-%m-%d 23:59:59')
+      sdate = sdate.strftime('%Y-%m-%d %H:%M:%S')
+      print(sdate,tdate)
+      deposit_report =  db.execute("select * from deposit_report where timestamp >= ? and timestamp <= ? and store_id = ? order by timestamp", sdate, tdate, store_id)
+      if not deposit_report:
+        flash("No deposit for this day")
+        return redirect("acchome",code=302)
+      
+
+      for x in deposit_report:
+        username = db.execute("select username from users where id = ?",x['user_id'])[0]['username']
+        x['username'] = username
+        if x['deposit_json']:  
+          x['deposit_json'] = json.loads(x['deposit_json'])
+        else:
+          x['deposit_json'] = None
+          
+        if x['bankAccount_json']:
+          x['bankAccount_json'] = json.loads(x['bankAccount_json'])
+        else:
+          x['bankAccount_json'] = None
+        
+        if x['electricity_json']:
+          x['electricity_json'] = json.loads(x['electricity_json'])
+        else:
+          x['electricity_json'] = None
+          
+        if x['palpay_json']:
+          x['palpay_json'] = json.loads(x['palpay_json'])
+        else:
+          x['palpay_json'] = None
+          
+        if x['dates_json']:  
+          x['dates_json'] = json.loads(x['dates_json'])
+        else:
+          x['dates_json'] = None
+        
+        
+      timestamp_string = x['timestamp']
+      timestamp_datetime = datetime.strptime(timestamp_string, '%Y-%m-%d %H:%M:%S')
+      formatted_date = timestamp_datetime.strftime('%Y-%m-%d')
+      x['timestamp'] = formatted_date
+        
+
+      return render_template("/depositReport.html",deposit_report=deposit_report)
+    else:
+      return apology("NOT IN THIS WAY :)")
+  else:
+    return apology("YOUR NOT ACCOUNTING GET OUT OF HERE!")
+ 
 def homeview(sdate,sstore):
       if not sdate or not sstore:
         flash("Must select both date and store!")
@@ -1769,18 +3065,21 @@ def homeview(sdate,sstore):
             ttlzview[x] += i[x]
             ttlzview[x] = round(ttlzview[x],2)
       deposit = db.execute("select * from deposit where store_id = ? and cdate = ?",store_id,sdate)
-      rate = db.execute("select rate.disable,rate.id,rate.rdate,rate.usd, rate.jod,users.username from rate join users on rate.user_id = users.id where rate.rdate = ? and rate.store_id = ?",sdate,store_id)
+      rate = db.execute("select * from rate where rdate = ? and store_id = ?",sdate, store_id)
+      if rate:
+        rate_user = db.execute("select username from users where id = ?", rate[0]['user_id'])
 
       if deposit:
-        return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,cashz=cashz,deposit=deposit,uname=uname,sdate=sdate,rate=rate,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
+        return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,cashz=cashz,deposit=deposit,uname=uname,sdate=sdate,rate=rate,rate_user=rate_user,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
       elif cashz:
-        return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,cashz=cashz,uname=uname,rate=rate,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
+        return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,cashz=cashz,uname=uname,rate=rate,rate_user=rate_user,ttlzview=ttlzview,ttlview=ttlview,stores=stores)
       elif cashx:
-        return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,uname=uname,rate=rate,ttlview=ttlview,stores=stores)
+        return render_template("/homeview.html",role=role,store=sstore,cashx=cashx,uname=uname,rate=rate,rate_user=rate_user,ttlview=ttlview,stores=stores)
       elif rate:
-        return render_template("/homeview.html",role=role,store=sstore,rate=rate,uname=uname,stores=stores)
+        return render_template("/homeview.html",role=role,store=sstore,rate=rate,rate_user=rate_user,uname=uname,stores=stores)
       elif stores:
         return render_template("/homeview.html",role=role,store=sstore,uname=uname,stores=stores)
       else:
         return render_template("/homeview.html",role=role,store=sstore,uname=uname)
-      
+
+

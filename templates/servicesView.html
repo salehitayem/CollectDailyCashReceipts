@@ -1,0 +1,177 @@
+{% extends 'managerlayout.html' %}
+
+{% block title %}
+Services
+{% endblock %}
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    /* Overall form styling */
+    #electricity-form {
+        width: 80%;
+        margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Smaller table styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        border: 1px solid #ccc;
+        padding: 6px; /* Reduced padding for smaller cells */
+        text-align: center;
+    }
+
+    table th {
+        background-color: #333;
+        color: #fff;
+        font-size: 16px; /* Smaller font size for headers */
+    }
+
+    /* Form input fields */
+    input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    /* Autofocus styling */
+    input[autofocus] {
+        outline: 2px solid #007bff;
+    }
+
+    /* Submit button styling */
+    #submit, #edit {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #submit:hover, #edit:hover {
+        background-color: #0056b3;
+    }
+
+    /* Tables container and table styling */
+    #tables {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #tables table {
+        width: 40%; /* Adjust the width as needed */
+    }
+
+    /* Additional styles for the Services tables */
+    #services-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+
+    }
+
+    #services-container table {
+        width: 48%; /* Adjust the width as needed */
+    }
+</style>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+   {%if electricity %} 
+        <header>JDECo</header>
+        <table>
+            <tr>
+                <th scope="col">Holley 1</th>
+                <th scope="col">Holley 2</th>
+                <th scope="col">Invoices</th>
+                <th scope="col">Actual Sale</th>
+                <th scope="col">System Sale</th>
+                <th scope="col">Difference</th>
+                <th scope="col">Remaining Balance</th>
+                <th scope="col">Notes</th>
+            </tr>
+        
+            
+            <form id="electricity-form" action="/editElectricity" method = "post">    
+            <tr>          
+                <td>{{electricity['holley1']}} ILS</td>
+                <td>{{electricity['holley2']}} ILS</td>
+                <td>{{electricity['invoices']}} ILS</td>
+                <td>{{electricity['actualSale']}} ILS</td>
+                <td>{{electricity['systemSale']}} ILS</td>
+                <td>{{electricity['diff']}} ILS</td>
+                <td>{{electricity['remainingBalance']}} ILS</td>
+                <td>{{electricity['notes']}}</td>
+            </tr>
+            </form>
+        </table>
+    {%endif%}
+        
+
+
+<br><br>
+{% if palpay %}
+<header>PALPAY</header>
+    <table>
+        <tr>
+            <th scope="col">Currency</th>
+            <th scope="col">System movements</th>
+            <th scope="col">Cash</th>
+            <th scope="col">Visa</th>
+            <th scope="col">Total income</th>
+            <th scope="col">Difference</th>
+            <th scope="col">Note</th>
+        </tr>
+        
+        <tr>
+            <th>ILS</th>
+            <td>{{ palpay['sys_ils'] }}</td>
+            <td>{{ palpay['cash_ils'] }}</td>
+            <td>{{ palpay['visa_ils'] }}</td>
+            <td>{{ palpay['ttl_ils'] }}</td>
+            <td>{{ palpay['diff_ils'] }}</td>
+            <td>{{ palpay['note_ils'] }}</td>
+        </tr>
+        <tr>
+            <th>USD</th>
+            <td>{{ palpay['sys_usd'] }}</td>
+            <td>{{ palpay['cash_usd'] }}</td>
+            <td>{{ palpay['visa_usd'] }}</td>
+            <td>{{ palpay['ttl_usd'] }}</td>
+            <td>{{ palpay['diff_usd'] }}</td>
+            <td>{{ palpay['note_usd'] }}</td>
+        </tr>
+        <tr>
+            <th>JOD</th>
+            <td>{{ palpay['sys_jod'] }}</td>
+            <td>{{ palpay['cash_jod'] }}</td>
+            <td>{{ palpay['visa_jod'] }}</td>
+            <td>{{ palpay['ttl_jod'] }}</td>
+            <td>{{ palpay['diff_jod'] }}</td>
+            <td>{{ palpay['note_jod'] }}</td>
+        </tr>
+    </table> 
+    {%endif%}
+
+    {%if not electricity and not palpay%}
+        <br><br>
+        <h2>Day is locked<br>There's no data for JDECo or/and PAYPAL</h2>
+    {% endif %}
+{% endblock %}

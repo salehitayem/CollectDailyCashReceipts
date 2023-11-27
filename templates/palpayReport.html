@@ -1,0 +1,233 @@
+{% extends 'acclayout.html' %}
+
+{% block title %}
+PALPAY Report
+{% endblock %}
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    /* Overall form styling */
+    #electricity-form {
+        width: 80%;
+        margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Smaller table styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        border: 1px solid #ccc;
+        padding: 6px; /* Reduced padding for smaller cells */
+        text-align: center;
+    }
+
+    table th {
+        background-color: #333;
+        color: #fff;
+        font-size: 16px; /* Smaller font size for headers */
+    }
+
+    /* Form input fields */
+    input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    /* Autofocus styling */
+    input[autofocus] {
+        outline: 2px solid #007bff;
+    }
+
+    /* Submit button styling */
+    #submit, #edit, #submit-palpay {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #submit:hover, #edit:hover {
+        background-color: #0056b3;
+    }
+    #submit-palpay:hover, #edit:hover {
+        background-color: #0056b3;
+    }
+
+    /* Tables container and table styling */
+    #tables {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #tables table {
+        width: 40%; /* Adjust the width as needed */
+    }
+
+    /* Additional styles for the Services tables */
+    #services-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+
+    }
+
+    #services-container table {
+        width: 48%; /* Adjust the width as needed */
+    }
+    .table-wrapper {
+        max-height: 400px; /* Adjust the height as needed */
+        overflow-y: auto;
+      }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<header>PALPAY Report {% if palpay %}for Bravo {{palpay[0]['store_id'] }} {% endif %}</header>
+<div class="table-wrapper">
+    <table id="main-table">
+        <tr>
+            <th scope="col">Currency</th>
+            <th scope="col">Date</th>
+            <th scope="col">System movements</th>
+            <th scope="col">Cash</th>
+            <th scope="col">Visa</th>
+            <th scope="col">Total income</th>
+            <th scope="col">Difference</th>
+            <th scope="col">Notes</th>
+        </tr>
+        {% if palpay %}
+        {%for i in palpay %}
+        <tr>
+            <th>ILS</th>
+            <td>{{ i['cdate'] }}</td>
+            <td>{{ i['sys_ils'] }}</td>
+            <td>{{ i['cash_ils'] }}</td>
+            <td>{{ i['visa_ils'] }}</td>
+            <td>{{ i['ttl_ils'] }}</td>
+            <td>{{ i['diff_ils'] }}</td>
+            <td>{{ i['note_ils'] }}</td>
+        </tr>
+        <tr>
+            <th>USD</th>
+            <td>{{ i['cdate'] }}</td>
+            <td>{{ i['sys_usd'] }}</td>
+            <td>{{ i['cash_usd'] }}</td>
+            <td>{{ i['visa_usd'] }}</td>
+            <td>{{ i['ttl_usd'] }}</td>
+            <td>{{ i['diff_usd'] }}</td>
+            <td>{{ i['note_usd'] }}</td>
+        </tr>
+        <tr>
+            <th>JOD</th>
+            <td>{{ i['cdate'] }}</td>
+            <td>{{ i['sys_jod'] }}</td>
+            <td>{{ i['cash_jod'] }}</td>
+            <td>{{ i['visa_jod'] }}</td>
+            <td>{{ i['ttl_jod'] }}</td>
+            <td>{{ i['diff_jod'] }}</td>
+            <td>{{ i['note_jod'] }}</td>
+        </tr>
+        <tr>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+            <th style="background:black;"></th>
+        </tr>
+        {% endfor %}
+        {% endif %}
+    </table>
+</div>
+
+<br>
+<header>Total</header>
+<table id="total-table">
+    <tr>
+        <th scope="col">Currency</th>
+        <th scope="col">System movements</th>
+        <th scope="col">Cash</th>
+        <th scope="col">Visa</th>
+        <th scope="col">Total income</th>
+        <th scope="col">Difference</th>
+    </tr>
+    <tr>
+        <th>ILS</th>
+
+        <td>{{ total['sys_ils'] }}</td>
+        <td>{{ total['cash_ils'] }}</td>
+        <td>{{ total['visa_ils'] }}</td>
+        <td>{{ total['ttl_ils'] }}</td>
+        <td>{{ total['diff_ils'] }}</td>
+    </tr>
+    <tr>
+        <th>USD</th>
+        <td>{{ total['sys_usd'] }}</td>
+        <td>{{ total['cash_usd'] }}</td>
+        <td>{{ total['visa_usd'] }}</td>
+        <td>{{ total['ttl_usd'] }}</td>
+        <td>{{ total['diff_usd'] }}</td>
+
+    </tr>
+    <tr>
+        <th>JOD</th>
+        <td>{{ total['sys_jod'] }}</td>
+        <td>{{ total['cash_jod'] }}</td>
+        <td>{{ total['visa_jod'] }}</td>
+        <td>{{ total['ttl_jod'] }}</td>
+        <td>{{ total['diff_jod'] }}</td>
+
+    </tr>
+</table>
+<br>
+<div class="button">
+    <button id="export-btn" type="button" class="btn btn-dark">Export to Excel</button>
+</div>
+</body>
+<!-- Add these scripts at the end of your HTML body -->
+<script>
+    // Function to export both tables to Excel
+    function exportToExcel() {
+        /* Get table elements */
+        var mainTable = document.getElementById('main-table');
+        var totalTable = document.getElementById('total-table');
+
+        /* Convert tables to worksheet and add to xlsx object */
+        var wb = XLSX.utils.book_new();
+        var mainWorksheet = XLSX.utils.table_to_sheet(mainTable, { sheet: "Main Table" });
+        var totalWorksheet = XLSX.utils.table_to_sheet(totalTable, { sheet: "Total Table" });
+
+        XLSX.utils.book_append_sheet(wb, mainWorksheet, "Main Table");
+        XLSX.utils.book_append_sheet(wb, totalWorksheet, "Total Table");
+
+        /* Save workbook as Excel file */
+        XLSX.writeFile(wb, 'PALPAY_Report.xlsx');
+    }
+
+    // Add click event listener to the export button
+    document.getElementById('export-btn').addEventListener('click', exportToExcel);
+</script>
+
+
+    
+{%endblock%}

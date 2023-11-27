@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <title>Deposit Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+  
+        .container {
+            max-width: 1200px;
+            padding: 20px;
+        }
+  
+        .form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+  
+        #A4 {
+            width: 8.27in; /* A4 width in inches */
+            height: 11.69in; /* A4 height in inches */
+            margin: auto; /* Center the A4 div in the viewport */
+            border: 1px solid #d0d0d0; /* Add a border to indicate paper boundary */
+            position: relative; /* Position the text elements relative to this container */
+        }
+  
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+  
+        .table-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+  
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #fff;
+        }
+  
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+        }
+  
+        .table-header {
+            background-color: #f0f5f9;
+        }
+  
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+  
+        .logo {
+            max-width: 100%;
+            max-height: 100%;
+            margin: 0 15px 0 0;
+        }
+  
+        .apscEnglish,
+        .apscArabic {
+            padding: 8px;
+            margin-bottom: 0;
+        }
+  
+        input {
+            width: 90%;
+            height: 100%;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+  
+        /* Add background colors and styles for rows */
+        tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+  
+        .highlight {
+            background-color: #ffc107; /* Yellow background for this class */
+        }
+        header {
+          font-size: 16px;
+          margin-bottom: 10px;
+          text-align: center;
+      }
+  </style>
+</head>
+<body>
+    <div class="container">
+        {%if deposit_report %}
+            {% for line in deposit_report%}
+
+                <div id="A4">
+                    <div class="logo-container">
+                        <h4 style="font-size:14px" class="apscEnglish">Arab Palestinian Shoping Centers</h4>
+                        <img src="static\clearlogo.png" alt="Bank Logo" class="logo">
+                        <h4 class="apscArabic">الشركة العربية الفلسطينية لمراكز التسوق</h4>
+                    </div>
+
+                    {%if line['dates_json']%}
+                    <div>
+                        <table class="table table-hover">
+                        <tr>
+                            <th style="width:110px; font-size:13px">Store: {% if line['store'] %} {{line['store']}} {% endif %}</th>
+                            <th style="width:160px; font-size:13px" id="currentDateHeader">Current Date: {{ line['timestamp'] }} </th>
+                            <th style="border-top: none;border-left: none;border-right: none; width:140px;">نموذج ايداع نقدي</th>
+                            <td style="width:140px;"><input {%if line['studNumber'] %} value="{{line['studNumber']}}" {%endif%} disabled style="color:black;"></td>
+                            <th style="width:130px;" >رقم المربط</th>
+                        </tr>
+
+                        {% if line['dates_json']|length > 1 %}
+                        <tr>
+
+                            <th>From Date:</th>
+                            <th>{{ line['dates_json'][:1][0] }}</th>
+                            <th>To Date:</th>
+                            <th>{{ line['dates_json'][-1:][0] }}</th>
+                            <th style="font-size:13px;">Created By: {{line['username']}}</th>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                        <th>For Date:</th>
+                        <th>{{ line['dates_json'][:1][0] }}</th>
+                        <th>Created By:</th>
+                        <th> {{line['username']}} </th>
+                        </tr>
+                        {% endif %}
+
+                        <tr style="width:100%;">
+                        <th style="width:110px;">Bank: </th>
+                        <th>{% if line['bankAccount_json'] %} {{ line['bankAccount_json'][0]['bankName'] }} {% endif %}</th>
+                        <th>Account Number:</th>
+                        <th style="border-right:none;">{% if line['bankAccount_json'] %} {{ line['bankAccount_json'][0]['accountNumber'] }} {% endif %}</th>
+                        <th style="border-left:none;"></th>
+                        </tr>
+                        </table>
+                    </div>
+
+
+                    {%endif%}
+                    {% if line['deposit_json'] %}
+                    <div class="table-container">
+                        <table class="table table-hover">
+                        <tr>
+                            <th style="border-right: none; width:25%;"></th>
+                            <th style="border-left: none;border-right: none;width:25%;">شيقل</th>
+                            <th style="border-left: none;width:50%;"></th>
+                        </tr>
+                        <tr>
+                            <th>الفئة</th>
+                            <th>العدد</th>
+                            <th>المجموع</th>
+                        </tr>
+                        <tr>
+                            <td>200</td>
+                            <td>{{line['deposit_json'][0]['ils_200']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_200'] * 200) }}</td>
+                        </tr>
+                        <tr>
+                            <td>100</td>
+                            <td>{{line['deposit_json'][0]['ils_100']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_100'] * 100) }}</td>
+                        </tr>
+                        <tr>
+                            <td>50</td>
+                            <td>{{line['deposit_json'][0]['ils_50']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_50'] * 50) }}</td>
+                        </tr>
+                        <tr>
+                            <td>20</td>
+                            <td>{{line['deposit_json'][0]['ils_20']}}</td>
+                            <td>{{ ( line['deposit_json'][0]['ils_20'] * 20 ) }}</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>{{line['deposit_json'][0]['ils_10']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_10'] * 10) }}</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>{{line['deposit_json'][0]['ils_5']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_5'] * 5)}}</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>{{line['deposit_json'][0]['ils_2']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_2'] * 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>{{line['deposit_json'][0]['ils_1']}}</td>
+                            <td>{{ (line['deposit_json'][0]['ils_1'] * 1) }}</td>
+                        </tr>
+                        <tr>
+                            <td>0.5</td>
+                            <td>{{line['deposit_json'][0]['ils_05']}}</td>
+                            <td>{{ ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border-right: none;"></td>
+                            <td style="border-right: none;border-left: none;"></td>
+                            <th style="border-left: none">{{( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+                        </tr>
+                        </table>
+
+                        <table class="table table-hover ">
+                        <tr>
+                            <th style="border-right: none; width:25%;"></th>
+                            <th style="border-left: none;border-right: none;width:25%;">دولار</th>
+                            <th style="border-left: none;width:50%;"></th>
+                        </tr>
+                        <tr>
+                            <th>الفئة</th>
+                            <th>العدد</th>
+                            <th>المجموع</th>
+                        </tr>
+                        <tr>
+                            <td>100</td>
+                            <td>{{line['deposit_json'][0]['usd_100']}}</td>
+                            <td>{{ (line['deposit_json'][0]['usd_100'] * 100) }}</td>
+                        </tr>
+                        <tr>
+                            <td>50</td>
+                            <td>{{line['deposit_json'][0]['usd_50']}}</td>
+                            <td>{{ (line['deposit_json'][0]['usd_50'] * 50) }}</td>
+                        </tr>
+                        <tr>
+                            <td>20</td>
+                            <td>{{line['deposit_json'][0]['usd_20']}}</td>
+                            <td>{{ ( line['deposit_json'][0]['usd_20'] * 20 ) }}</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>{{line['deposit_json'][0]['usd_10']}}</td>
+                            <td>{{ (line['deposit_json'][0]['usd_10'] * 10) }}</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>{{line['deposit_json'][0]['usd_5']}}</td>
+                            <td>{{ (line['deposit_json'][0]['usd_5'] * 5)}}</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>{{line['deposit_json'][0]['usd_2']}}</td>
+                            <td>{{ (line['deposit_json'][0]['usd_2'] * 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>{{line['deposit_json'][0]['usd_1']}}</td>
+                            <td>{{ (line['deposit_json'][0]['usd_1'] * 1) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border-right: none"></td>
+                            <td style="border-right: none;border-left: none"></td>
+                            <th style="border-left: none">{{( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</th>
+                        </tr>
+                        </table>
+
+                        <table class="table table-hover">
+
+                        <tr>
+                            <th style="border-right: none; width:25%;"></th>
+                            <th style="border-left: none;border-right: none;width:25%;">دينار</th>
+                            <th style="border-left: none;width:50%;"></th>
+                        </tr>
+                        <tr>
+                            <th>الفئة</th>
+                            <th>العدد</th>
+                            <th>المجموع</th>
+                        </tr>
+                        <tr>
+                            <td>50</td>
+                            <td>{{line['deposit_json'][0]['jod_50']}}</td>
+                            <td>{{ (line['deposit_json'][0]['jod_50'] * 50) }}</td>
+                        </tr>
+                        <tr>
+                            <td>20</td>
+                            <td>{{line['deposit_json'][0]['jod_20']}}</td>
+                            <td>{{ ( line['deposit_json'][0]['jod_20'] * 20 ) }}</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>{{line['deposit_json'][0]['jod_10']}}</td>
+                            <td>{{ (line['deposit_json'][0]['jod_10'] * 10) }}</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>{{line['deposit_json'][0]['jod_5']}}</td>
+                            <td>{{ (line['deposit_json'][0]['jod_5'] * 5)}}</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>{{line['deposit_json'][0]['jod_1']}}</td>
+                            <td>{{ (line['deposit_json'][0]['jod_1'] * 1) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border-right: none"></td>
+                            <td style="border-right: none;border-left: none"></td>
+                            <th style="border-left: none">{{( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</th>
+                        </tr>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {%if line['notes']%} 
+                    {% if line['electricity_json'] and line['palpay_json'] %}
+                        <div>
+                            <table>
+                                <tr>
+                                <td>{{line['electricity_json'][0]['actualSale']}} ILS</td>
+                                <th>Jerusalem District Electricity Company</th>
+                                </tr>
+                            </table>
+                        </div>
+                        <div>
+                            <br>
+                            <header>PAYPAL</header>
+
+                            <table>
+                                <tr>
+                                <th style="width:33%;">شيقل</th>
+                                <th style="width:33%;">دولار</th>
+                                <th style="width:33%;">دينار</th>
+                                </tr>
+                                <tr>
+                                <td>{{ line['palpay_json'][0]['cash_ils'] }} ILS</td>
+                                <td>{{ line['palpay_json'][0]['cash_usd'] }} USD</td>
+                                <td>{{ line['palpay_json'][0]['cash_jod'] }} JOD</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <br>
+                        <div>
+                            <header>Total Deposit</header>
+                            <table>
+                                <tr>
+                                <th style="width:33%;">شيقل</th>
+                                <th style="width:33%;">دولار</th>
+                                <th style="width:33%;">دينار</th>
+                                </tr>
+                                <tr>
+                                <td>{{ line['palpay_json'][0]['cash_ils'] + line['electricity_json'][0]['actualSale'] + ( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+                                <td>{{ line['palpay_json'][0]['cash_usd'] + ( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</td>
+                                <td>{{ line['palpay_json'][0]['cash_jod'] + ( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</td>
+                                </tr>
+                            </table>
+                        </div>
+                    
+                    {%elif line['electricity_json'] %}
+                
+                        <div>
+                            <table>
+                            <tr>
+                                <td>{{line['electricity_json'][0]['actualSale']}} ILS</td>
+                                <th>Jerusalem District Electricity Company</th>
+                            </tr>
+                            </table>
+                        </div>
+                        <br><br>
+                        <div>
+                            <header>Total Deposit</header>
+                            <table>
+                                <tr>
+                                <th style="width:33%;">شيقل</th>
+                                <th style="width:33%;">دولار</th>
+                                <th style="width:33%;">دينار</th>
+                                </tr>
+                                <tr>
+                                <td>{{line['electricity_json'][0]['actualSale'] + ( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+                                <td>{{( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</td>
+                                <td>{{( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</td>
+                                </tr>
+                            </table>
+                        </div>
+                    
+                        {%elif line['palpay_json']%}
+
+                        <div>
+                            <header>PALPAY</header>
+                            <table>
+                                <tr>
+                                <th style="width:33%;">شيقل</th>
+                                <th style="width:33%;">دولار</th>
+                                <th style="width:33%;">دينار</th>
+                                </tr>
+                                <tr>
+                                <td>{{ line['palpay_json'][0]['cash_ils'] }} ILS</td>
+                                <td>{{ line['palpay_json'][0]['cash_usd'] }} USD</td>
+                                <td>{{ line['palpay_json'][0]['cash_jod'] }} JOD</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <br><br>
+                        <div>
+                            <header>Total Deposit</header>
+                            <table>
+                                <tr>
+                                <th style="width:33%;">شيقل</th>
+                                <th style="width:33%;">دولار</th>
+                                <th style="width:33%;">دينار</th>
+                                </tr>
+                                <tr>
+                                <td>{{ line['palpay_json'][0]['cash_ils'] + ( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+                                <td>{{ line['palpay_json'][0]['cash_usd'] + ( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</td>
+                                <td>{{ line['palpay_json'][0]['cash_jod'] + ( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</td>
+                                </tr>
+                            </table>
+                        </div>
+                    {% endif %}
+                    <br>
+                    <table style="width:75%">
+                        <tr>
+                        <th style="text-align:left;width:13%">Notes:</th>
+                        <td styl="text-align:left;">{{ line['notes'] }}</td>
+                        </tr>
+                    </table>
+                    <br><br>
+                    {% else %}
+                    {% if line['electricity_json']  and line['palpay_json'][0]%}
+                        <div>
+                        <table>
+                            <tr>
+                            <td>{{line['electricity_json'][0]['actualSale']}} ILS</td>
+                            <th>Jerusalem District Electricity Company</th>
+                            </tr>
+                        </table>
+                        </div>
+                        <div>
+                        <br><br>
+                        <header>PAYPAL</header>
+
+                        <table>
+                            <tr>
+                            <th style="width:33%;">شيقل</th>
+                            <th style="width:33%;">دولار</th>
+                            <th style="width:33%;">دينار</th>
+                            </tr>
+                            <tr>
+                            <td>{{ line['palpay_json'][0]['cash_ils'] }} ILS</td>
+                            <td>{{ line['palpay_json'][0]['cash_usd'] }} USD</td>
+                            <td>{{ line['palpay_json'][0]['cash_jod'] }} JOD</td>
+                            </tr>
+                        </table>
+                        </div>
+                        <br><br>
+                        <div>
+                        <header>Total Deposit</header>
+                        <table>
+                            <tr>
+                            <th style="width:33%;">شيقل</th>
+                            <th style="width:33%;">دولار</th>
+                            <th style="width:33%;">دينار</th>
+                            </tr>
+                            <tr>
+                            <td>{{ line['palpay_json'][0]['cash_ils'] + line['electricity_json'][0]['actualSale'] + ( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+                            <td>{{ line['palpay_json'][0]['cash_usd'] + ( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</td>
+                            <td>{{ line['palpay_json'][0]['cash_jod'] + ( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                    {%elif line['electricity_json'] %}
+                    
+                        <div>
+                            <table>
+                            <tr>
+                                <td>{{line['electricity_json'][0]['actualSale']}} ILS</td>
+                                <th>Jerusalem District Electricity Company</th>
+                            </tr>
+                            </table>
+                        </div>
+                        <br><br>
+                        <div>
+                        <header>Total Deposit</header>
+                        <table>
+                            <tr>
+                            <th style="width:33%;">شيقل</th>
+                            <th style="width:33%;">دولار</th>
+                            <th style="width:33%;">دينار</th>
+                            </tr>
+                            <tr>
+                            <td>{{line['electricity_json'][0]['actualSale'] + ( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+                            <td>{{( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</td>
+                            <td>{{( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                        {%elif line['palpay_json'][0]%}
+                        <div>
+                        <header>PALPAY</header>
+                        <table>
+                            <tr>
+                            <th style="width:33%;">شيقل</th>
+                            <th style="width:33%;">دولار</th>
+                            <th style="width:33%;">دينار</th>
+                            </tr>
+                            <tr>
+                            <td>{{ line['palpay_json'][0]['cash_ils'] }} ILS</td>
+                            <td>{{ line['palpay_json'][0]['cash_usd'] }} USD</td>
+                            <td>{{ line['palpay_json'][0]['cash_jod'] }} JOD</td>
+                            </tr>
+                        </table>
+                        </div>
+                        <br><br>
+                        <div>
+                        <header>Total Deposit</header>
+                        <table>
+                            <tr>
+                            <th style="width:33%;">شيقل</th>
+                            <th style="width:33%;">دولار</th>
+                            <th style="width:33%;">دينار</th>
+                            </tr>
+                            <tr>
+                            <td>{{ line['palpay_json'][0]['cash_ils'] + ( (line['deposit_json'][0]['ils_200'] * 200) + (line['deposit_json'][0]['ils_100'] * 100) +(line['deposit_json'][0]['ils_50'] * 50) + ( line['deposit_json'][0]['ils_20'] * 20 ) + (line['deposit_json'][0]['ils_10'] * 10) + (line['deposit_json'][0]['ils_5'] * 5) + (line['deposit_json'][0]['ils_2'] * 2) + (line['deposit_json'][0]['ils_1'] * 1) + ((line['deposit_json'][0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+                            <td>{{ line['palpay_json'][0]['cash_usd'] + ( ( (line['deposit_json'][0]['usd_100'] * 100) + (line['deposit_json'][0]['usd_50'] * 50) + ( line['deposit_json'][0]['usd_20'] * 20 ) + (line['deposit_json'][0]['usd_10'] * 10) + (line['deposit_json'][0]['usd_5'] * 5) + (line['deposit_json'][0]['usd_2'] * 2) + (line['deposit_json'][0]['usd_1'] * 1)))}} USD</td>
+                            <td>{{ line['palpay_json'][0]['cash_jod'] + ( ( (line['deposit_json'][0]['jod_50'] * 50) + ( line['deposit_json'][0]['jod_20'] * 20 ) + (line['deposit_json'][0]['jod_10'] * 10) + (line['deposit_json'][0]['jod_5'] * 5) + (line['deposit_json'][0]['jod_1'] * 1)))}} JOD</td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                
+                {% endif %}
+                {% endif%}
+            
+
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>

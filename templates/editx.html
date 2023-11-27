@@ -6,75 +6,68 @@ Edit X-Report
 {% block main %}
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <style>
+  /* Add some basic styling here */
   body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f5f9;
-    padding: 0px;
+      font-family: Arial, sans-serif;
+      background-color: #f0f5f9;
+      padding: 0px;
   }
 
   .table-container {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+      background-color: #e9f0f5; /* Blue color scheme */
+      box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
   }
 
   .table {
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-
+      border-collapse: collapse;
+      background-color: #fff;
   }
 
-  .table th, .table td {
-    padding: 1px;
-    text-align: center;
-    border-bottom: 0px solid #ddd;
-    vertical-align: middle;
+  .table th,
+  .table td {
+      padding: 1px;
+      text-align: center;
+      border-bottom: 0px solid #ddd;
+      vertical-align: middle;
   }
 
   .table th {
-    background-color: #f8f9fa;
+      background-color: #f8f9fa;
   }
 
   .input-container {
-    display: flex;
-    align-items: center;
+      display: flex;
+      align-items: center;
   }
 
   /* Adjust input field width */
   input[type="number"] {
-    width: 100%;
-    text-align: center;
-
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+      width: 90px; /* Set the width as per your design */
+      text-align: center;
+      padding: 2px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
   }
 
   .btn-container {
-    text-align: center;
-    margin-top: 20px;
-  }
-
-  /* Blue color scheme */
-  .table-container {
-    background-color: #e9f0f5;
-  }
-
-  .table {
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      margin-top: 20px;
   }
 
   .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+      background-color: #007bff;
+      border-color: #007bff;
   }
 
   .btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
+      background-color: #0056b3;
+      border-color: #0056b3;
   }
 </style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <div class="table-container">
       <table class="table">
@@ -180,7 +173,7 @@ Edit X-Report
           <td><input autocomplete="off" value="{{i['ils']}}" autofocus style="width:90px" type="number" step="any" min="0" name="ils" id="ils" oninput="validateForm()"></td>
           <td><input autocomplete="off" value="{{i['usd']}}" autofocus style="width:90px" type="number" step="any" min="0" name="usd" id="usd" oninput="validateForm()"></td>
           <td><input autocomplete="off" value="{{i['jod']}}" autofocus style="width:90px" type="number" step="any" min="0"  name="jod" id="jod" oninput="validateForm()"></td>
-          <td><input autocomplete="off" value="{{i['credit']}}" autofocus style="width:90px" type="number" step="any" min="0" name="credit" id="credit" oninput="validateForm()"></td>
+          <td><input autocomplete="off" value="{{i['credit']}}" autofocus style="width:90px" type="number" step="any" name="credit" id="credit" oninput="validateForm()"></td>
           <td><input autocomplete="off" value="{{i['visa_palestine']}}" autofocus style="width:90px" type="number" step="any" min="0" name="ps_visa" id="ps_visa" oninput="validateForm()"></td>
           <td><input autocomplete="off" value="{{i['easy_life']}}" autofocus style="width:90px" type="number" step="any" min="0" name="easylife" id="easylife" oninput="validateForm()"></td>
           <td><input autocomplete="off" value="{{i['bcheck']}}" autofocus style="width:90px" type="number" step="any" min="0" name="bcheck" id="bcheck" oninput="validateForm()"></td>
@@ -189,7 +182,7 @@ Edit X-Report
           <td><input autocomplete="off" value="{{i['visa_arabi']}}" autofocus style="width:90px" type="number" step="any" min="0" name="arabi_visa" id="arabi_visa" oninput="validateForm()"></td>
           <td><input autocomplete="off"  autofocus style="width:90px" type="number" step="any" min="0" name="ttl_cash" id="ttl_cash" disabled oninput="validateForm()"></td>
           <td><input autocomplete="off" value="{{i['x_report']}}" autofocus style="width:90px" type="number" step="any" min="0" name="x_report" id="x_report" oninput="validateForm()"></td>
-          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="diff" id="diff" disabled oninput="validateForm()"></td>
+          <td><input style="width:100%;" autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="diff" id="diff" disabled oninput="validateForm()"></td>
           <td><button class="btn btn-primary btn-sm" type="submit" id="addButton">Update</button>
       {% endfor %}
     {% endif %}
@@ -391,7 +384,6 @@ $('#cashier_name').on('change', function() {
       }
   }
 </script>
-
 <script>
   // Function to handle Enter key press and move to the next input field
   function handleEnterKeyPress(event, inputId) {
@@ -425,5 +417,4 @@ $('#cashier_name').on('change', function() {
     });
   });
   </script>
-  
 {% endblock %}

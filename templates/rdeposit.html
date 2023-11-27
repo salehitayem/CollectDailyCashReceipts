@@ -13,17 +13,19 @@ Deposit Report
   }
 
   .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
+    display: flex;
+    justify-content: space-between;
+}
 
-  .form {
-    background-color: #fff;
+.form {
+    flex: 1;
     padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
+    margin-bottom: 20px;
+}
 
   h2 {
     text-align: center;
@@ -94,226 +96,51 @@ Deposit Report
     overflow: hidden; /* Hides content that exceeds cell dimensions */
     text-overflow: ellipsis; /* Adds an ellipsis (...) to indicate hidden content */
   }
-  .divScroll {
-    overflow-y: scroll;
-    overflow-x: hidden;
-    height:150px;
-    }
+  .single {
+    display: flex;
+    justify-content: space-between;
+    width: 50%; /* Set the desired width */
+    margin: 0 auto;
+  }
 </style>
-
-<div class="container">
-  <form class="form" action="/rdeposit" method="post">
+</head>
+<body>
+<div class="single">
+  <form class="form" action="/rdeposit" method="post" target="_blank">
     <h2>Deposit Report</h2>
     <label for="fromDate2">From Date:</label>
     <input type="date" id="fromDate2" name="fromDate2" class="date-picker">
     <label for="toDate2">To Date:</label>
     <input type="date" id="toDate2" name="toDate2" class="date-picker">
-    <button type="submit" class="submit-button">Generate Report</button>
+    <input style="text-align:center;" autocomplete="off" autofocus name="studNumber" id="studNumber" placeholder="رقم المربط">
+    <br>
+    <br>
+    <input style="text-align:center ; width:400px; height:60px;" autocomplete="off" autofocus name="notes" id="notes" placeholder="ملاحطات">
+    <br><br>
+    <button type="submit" class="submit-button" id="generateReport">Generate Report</button>
+  </form>
+</div>
+
+<div class="container">
+  <form class="form" action="/JDECoMReport" method="post" target="_blank">
+    <h2>JDECo</h2>
+    <label for="FromDate">From Date:</label>
+    <input type="date" id="FromDate" name="FromDate" class="date-picker">
+    <label for="ToDate">To Date:</label>
+    <input type="date" id="ToDate" name="ToDate" class="date-picker">
+    <br><br>
+    <button type="submit" class="submit-button" id="generateReport">Generate Report</button>
   </form>
 
-  {%if dates%}
-  <div class="divScroll">
-  <table class="table table-hover">
-    <tr>
-      <th><h4>Dates</h4></th>
-     
-    </tr>
-    
-      {%for x in dates%}
-      <tr>
-        <td>{{x}}</td>
-      </tr>
-      {%endfor%}
-    
-  </table>
-  </div>
-  {%endif%}
-{% if deposit%}
-  <div class="table-container">
-      <table class="table table-hover">
-
-          <tr>
-              <th></th>
-              <th>شيقل</th>
-              <th></th>
-          </tr>
-          <tr>
-              <th>الفئة</th>
-              <th>العدد</th>
-              <th>المجموع</th>
-          </tr>
-          <tr>
-            <td>200</td>
-            <td>{{deposit[0]['ils_200']}}</td>
-            <td>{{ (deposit[0]['ils_200'] * 200) }}</td>
-          </tr>
-          <tr>
-            <td>100</td>
-            <td>{{deposit[0]['ils_100']}}</td>
-            <td>{{ (deposit[0]['ils_100'] * 100) }}</td>
-          </tr>
-          <tr>
-            <td>50</td>
-            <td>{{deposit[0]['ils_50']}}</td>
-            <td>{{ (deposit[0]['ils_50'] * 50) }}</td>
-          </tr>
-          <tr>
-            <td>20</td>
-            <td>{{deposit[0]['ils_20']}}</td>
-            <td>{{ ( deposit[0]['ils_20'] * 20 ) }}</td>
-          </tr>
-          <tr>
-            <td>10</td>
-            <td>{{deposit[0]['ils_10']}}</td>
-            <td>{{ (deposit[0]['ils_10'] * 10) }}</td>
-          </tr>
-          <tr>
-            <td>5</td>
-            <td>{{deposit[0]['ils_5']}}</td>
-            <td>{{ (deposit[0]['ils_5'] * 5)}}</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>{{deposit[0]['ils_2']}}</td>
-            <td>{{ (deposit[0]['ils_2'] * 2) }}</td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>{{deposit[0]['ils_1']}}</td>
-            <td>{{ (deposit[0]['ils_1'] * 1) }}</td>
-          </tr>
-          <tr>
-            <td>0.5</td>
-            <td>{{deposit[0]['ils_05']}}</td>
-            <td>{{ ((deposit[0]['ils_05'] * 0.5)|round(2)) }}</td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <th>{{( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}}</th>
-          </tr>
-            <tr>
-            <td></td>
-            <td></td>
-            {%if ttlview %}
-            <th> {{ (((ttlview['ils'] * (-1))|round(2) + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))))|round(2)}}</th>
-            {% endif %}
-          </tr>
-    </table>
-
-      <table class="table table-hover ">
-          <tr>
-              <th></th>
-              <th>دولار</th>
-              <th></th>
-          </tr>
-          <tr>
-              <th>الفئة</th>
-              <th>العدد</th>
-              <th>المجموع</th>
-          </tr>
-          <tr>
-            <td>100</td>
-            <td>{{deposit[0]['usd_100']}}</td>
-            <td>{{ (deposit[0]['usd_100'] * 100) }}</td>
-          </tr>
-          <tr>
-            <td>50</td>
-            <td>{{deposit[0]['usd_50']}}</td>
-            <td>{{ (deposit[0]['usd_50'] * 50) }}</td>
-          </tr>
-          <tr>
-            <td>20</td>
-            <td>{{deposit[0]['usd_20']}}</td>
-            <td>{{ ( deposit[0]['usd_20'] * 20 ) }}</td>
-          </tr>
-          <tr>
-            <td>10</td>
-            <td>{{deposit[0]['usd_10']}}</td>
-            <td>{{ (deposit[0]['usd_10'] * 10) }}</td>
-          </tr>
-          <tr>
-            <td>5</td>
-            <td>{{deposit[0]['usd_5']}}</td>
-            <td>{{ (deposit[0]['usd_5'] * 5)}}</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>{{deposit[0]['usd_2']}}</td>
-            <td>{{ (deposit[0]['usd_2'] * 2) }}</td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>{{deposit[0]['usd_1']}}</td>
-            <td>{{ (deposit[0]['usd_1'] * 1) }}</td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <th>{{( ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}}</th>
-          </tr>
-            <tr>
-            <td></td>
-            <td></td>
-            {%if ttlview %}
-            <th> {{ (( (ttlview['usd'] * (-1) )+ ( (deposit[0]['usd_100'] * 100) +(deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1) ) ))|round(2)}}</th>
-            {% endif %}
-          </tr>
-      </table>
-
-        <table class="table table-hover">
-
-          <tr>
-              <th></th>
-              <th>دينار</th>
-              <th></th>
-          </tr>
-          <tr>
-              <th>الفئة</th>
-              <th>العدد</th>
-              <th>المجموع</th>
-          </tr>
-          <tr>
-            <td>50</td>
-            <td>{{deposit[0]['jod_50']}}</td>
-            <td>{{ (deposit[0]['jod_50'] * 50) }}</td>
-          </tr>
-          <tr>
-            <td>20</td>
-            <td>{{deposit[0]['jod_20']}}</td>
-            <td>{{ ( deposit[0]['jod_20'] * 20 ) }}</td>
-          </tr>
-          <tr>
-            <td>10</td>
-            <td>{{deposit[0]['jod_10']}}</td>
-            <td>{{ (deposit[0]['jod_10'] * 10) }}</td>
-          </tr>
-          <tr>
-            <td>5</td>
-            <td>{{deposit[0]['jod_5']}}</td>
-            <td>{{ (deposit[0]['jod_5'] * 5)}}</td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>{{deposit[0]['jod_1']}}</td>
-            <td>{{ (deposit[0]['jod_1'] * 1) }}</td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <th>{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}}</th>
-          </tr>
-            <tr>
-            <td></td>
-            <td></td>
-            {%if ttlview %}
-            <th> {{ (((ttlview['jod'] * (-1))|round(2) + (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) +  (deposit[0]['jod_1'] * 1) ))|round(2)}}</th>
-            {% endif %}
-          </tr>
-          {% endif %}
-      </table>
-    </div>
-  </div>
+  <form class="form" action="/palpayMReport" method="post" target="_blank">
+    <h2>PALPAY</h2>
+    <label for="FromDate">From Date:</label>
+    <input type="date" id="FromDate" name="FromDate" class="date-picker">
+    <label for="ToDate">To Date:</label>
+    <input type="date" id="ToDate" name="ToDate" class="date-picker">
+    <br><br>
+    <button type="submit" class="submit-button" id="generateReport">Generate Report</button>
+  </form>
+</div>
 </body>
-
 {% endblock %}

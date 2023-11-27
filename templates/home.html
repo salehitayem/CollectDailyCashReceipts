@@ -34,6 +34,7 @@ Home
 
   .table th {
     background-color: #f8f9fa;
+    
   }
 
   .input-container {
@@ -102,13 +103,13 @@ Home
           <td>USD</td>
           <td><input type="number" step="any" min="0" name="rate_usd" id="rate_usd"></td>
 
-          <td><input type="number" step ="any" {%if info%} value={{info[0]['usd']}} {%endif%}min="0" name="current_rate_usd" id="current_rate_usd" disabled oninput="validateForm()" ></td>
+          <td><input type="number" step ="any" {%if rate%} value={{rate[0]['usd']}} {%endif%}min="0" name="current_rate_usd" id="current_rate_usd" disabled oninput="validateForm()" ></td>
 
         </tr>
       <tr>
           <td>JOD</td>
           <td><input type="number" step="any" min="0" name="rate_jod" id="rate_jod"></td>
-          <td><input type="number" step ="any" {%if info%} value={{info[0]['jod']}} {%endif%} min="0" name="current_rate_jod" id="current_rate_jod" disabled oninput="validateForm()"></td>
+          <td><input type="number" step ="any" {%if rate%} value={{rate[0]['jod']}} {%endif%} min="0" name="current_rate_jod" id="current_rate_jod" disabled oninput="validateForm()"></td>
       </tr>
       <tr>
           <th></th>
@@ -124,7 +125,7 @@ Home
     <tr>
       <th>
         <form action="/update_current_date" method="post">
-            <input type="date" id="selected_date" name="selected_date" {%if cdate %} value="{{ cdate[0]['cdate'] }}" {%endif%}>
+            <input type="date" id="selected_date" name="selected_date" {%if cdate %} value="{{ cdate }}" {%endif%}>
             <button class="btn btn-primary btn-sm" type="submit">Select</button>
         </form>
       </th>
@@ -135,13 +136,13 @@ Home
         <th>Store</th>
         <th>User</th>
         <th>Date</th>
-        <th>Created By</th>
+        <th>Rate updated by</th>
       </tr>
     <tr>
-      <td>{{store}}</td>
-      <td>{{uname[0]['username']}}</td>
-      <td>{%if info%} {{info[0]['cdate']}} {%endif%}</td>
-      <td>{%if cname %}{{cname[0]['username']}} {%endif%}</td>
+      <td> {%if store_name %} {{store_name[0]['name']}} </td>
+      <td> {% if uinfo %} {{uinfo[0]['username']}} {%endif%} </td>
+      <td> {%if cdate%} {{ cdate }} {%endif%}</td>
+      <td> {%if rate_user %}{{ rate_user[0]['username'] }} {%endif%}</td>
     </tr>
   </table>
 </div>
@@ -150,7 +151,7 @@ Home
 <table class="table table-hover" id="exportTable">
  
     <thead>
-      {%if info%}
+      {%if rate %}
       <tr>
           <th scope="col">رقم الكاش</th>
           <th scope="col">اسم الكاشير</th>
@@ -174,7 +175,7 @@ Home
     <tbody>
             <!--should be inside input or label-->
       
-        {%if cashrep%}
+        {%if cashrep and rate%}
         {% for i in cashrep %}
           <form action="editx" method = "post">
             <tr>
@@ -225,7 +226,7 @@ Home
           <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="ils" id="ils" oninput="validateForm()"></td>
           <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="usd" id="usd" oninput="validateForm()"></td>
           <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0"  name="jod" id="jod" oninput="validateForm()"></td>
-          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="credit" id="credit" oninput="validateForm()"></td>
+          <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" name="credit" id="credit" oninput="validateForm()"></td>
           <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="ps_visa" id="ps_visa" oninput="validateForm()"></td>
           <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="easylife" id="easylife" oninput="validateForm()"></td>
           <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="bcheck" id="bcheck" oninput="validateForm()"></td>
@@ -265,7 +266,7 @@ Home
     </tr>
     <tbody>
       {%endif%}
-      {%if zrepview %}
+      {%if zrepview and rate%}
           {% for cash_number, data in zrepview.items() %}
             
             <form action="/zreport" method="post"> 
@@ -277,7 +278,7 @@ Home
                 <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zils_{{cash_number}}" id="zils_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
                 <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zusd_{{cash_number}}" id="zusd_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
                 <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0"  name="zjod_{{cash_number}}" id="zjod_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
-                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zcredit_{{cash_number}}" id="zcredit_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
+                <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" name="zcredit_{{cash_number}}" id="zcredit_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
                 <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zps_visa_{{cash_number}}" id="zps_visa_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
                 <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zeasylife_{{cash_number}}" id="zeasylife_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
                 <td><input autocomplete="off" autofocus style="width:90px" type="number" step="any" min="0" name="zbcheck_{{cash_number}}" id="zbcheck_{{cash_number}}" oninput="zvalidateForm({{cash_number}})"></td>
@@ -296,7 +297,7 @@ Home
         {% endif %}
           <!--not finished 
           need to emplement edit...-->
-          {%if zrep %}
+          {%if zrep and rate%}
           {% for i in zrep %}
           <form action="/editzrep" method = "post">
             <tr>
@@ -321,7 +322,7 @@ Home
           </form>
         {% endfor %}
         {% endif %}
-      {%if ttlview %}
+      {%if ttlview and rate%}
         </tbody>
 
         <thead>
@@ -345,14 +346,14 @@ Home
         <td></td>
       </tr>
       {% endif %}
-      {%if ttlview %}
+      {%if ttlview and rate%}
       <tr>
         <td scope="col"></td>
         <td scope="col" style="font-size:16px">مجموع البيع الفعلي شيقل</td>
         <td scope="col"></td>
         <td scope="col">{{ ttlview['ils'] }}</td>
-        <td scope="col">{{ (ttlview['usd']  * info[0]['usd'])|round(2) }}</td>
-        <td scope="col">{{ (ttlview['jod']  * info[0]['jod'])|round(2) }}</td>
+        <td scope="col">{{ (ttlview['usd']  * rate[0]['usd'])|round(2) }}</td>
+        <td scope="col">{{ (ttlview['jod']  * rate[0]['jod'])|round(2) }}</td>
         <td scope="col">{{ ttlview['credit'] }}</td>
         <td scope="col">{{ ttlview['visa_palestine'] }}</td>
         <td scope="col">{{ ttlview['easy_life'] }}</td>
@@ -366,7 +367,7 @@ Home
         <td></td>
       </tr>
       {% endif %}
-      {%if ttlzview %}
+      {%if ttlzview and rate%}
         <tr>
             <!--ttl1 import from db-->
             <td scope="col"></td>
@@ -393,8 +394,8 @@ Home
             <td scope="col" style="widtd:90px">مجموع البيع على النظام شيقل</td>
             <td scope="col"></td>
             <td scope="col">{{ ttlzview['ils'] }}</td>
-            <td scope="col">{{ (ttlzview['usd']  * info[0]['usd'])|round(2) }}</td>
-            <td scope="col">{{ (ttlzview['jod']  * info[0]['jod'])|round(2) }}</td>
+            <td scope="col">{{ (ttlzview['usd']  * rate[0]['usd'])|round(2) }}</td>
+            <td scope="col">{{ (ttlzview['jod']  * rate[0]['jod'])|round(2) }}</td>
             <td scope="col">{{ ttlzview['credit'] }}</td>
             <td scope="col">{{ ttlzview['visa_palestine'] }}</td>
             <td scope="col">{{ ttlzview['easy_life'] }}</td>
@@ -408,15 +409,15 @@ Home
             <td></td>
         </tr>
       {% endif %}
-      {%if ttlview %}
+      {%if ttlview and rate%}
         {%if ttlzview %}
       <tr>
         <th scope="col"></th>
         <th scope="col" style="font-size:16px">مجموع الفارق بين البيع الفعلي والنظام شيقل</th>
         <th scope="col"></th>
         <th scope="col">{{ (ttlview['ils'] - ttlzview['ils'])|round(2) }}</th>
-        <th scope="col">{{ ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd']))|round(2) }}</th>
-        <th scope="col">{{ ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod']) )|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd']))|round(2) }}</th>
+        <th scope="col">{{ ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod']) )|round(2) }}</th>
         <th scope="col">{{ (ttlview['credit'] - ttlzview['credit'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['visa_palestine'] - ttlzview['visa_palestine'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['easy_life'] - ttlzview['easy_life'])|round(2) }}</th>
@@ -425,14 +426,14 @@ Home
         <th scope="col">{{ (ttlview['jawwal_pay'] - ttlzview['jawwal_pay'])|round(2) }}</th>
         <th scope="col">{{ (ttlview['visa_arabi'] - ttlzview['visa_arabi'])|round(2)  }}</th>
         
-        <th scope="col" {% if (ttlview['diff'])|round(2) ==  ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd'])) + ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)%}
+        <th scope="col" {% if (ttlview['diff'])|round(2) ==  ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd'])) + ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)%}
         style="background-color:#00FF00;" {%else%}
         style="background-color:#FFCCCC;" {% endif %}>         
-          {{ ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd'])) + ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)  }}</th>
+          {{ ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd'])) + ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)  }}</th>
 
         <th scope="col">{{ (ttlview['x_report'] - ttlzview['ttl_x_report'])|round(2) }}</th>
 
-        <th scope="col" {% if (ttlview['diff'])|round(2) ==  ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * info[0]['usd']) - (ttlzview['usd']  * info[0]['usd'])) + ((ttlview['jod']  * info[0]['jod']) - (ttlzview['jod']  * info[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)%}
+        <th scope="col" {% if (ttlview['diff'])|round(2) ==  ((ttlview['ils'] - ttlzview['ils']) + ((ttlview['usd']  * rate[0]['usd']) - (ttlzview['usd']  * rate[0]['usd'])) + ((ttlview['jod']  * rate[0]['jod']) - (ttlzview['jod']  * rate[0]['jod'])) + (ttlview['credit'] - ttlzview['credit']) + (ttlview['visa_palestine'] - ttlzview['visa_palestine']) + (ttlview['easy_life'] - ttlzview['easy_life']) + (ttlview['bcheck'] - ttlzview['bcheck']) + (ttlview['coupon'] - ttlzview['coupon']) + (ttlview['jawwal_pay'] - ttlzview['jawwal_pay']) + (ttlview['visa_arabi'] - ttlzview['visa_arabi']))|round(2)%}
         style="background-color:#00FF00;" {%else%}
         style="background-color:#FFCCCC;" {% endif %}>{{ (ttlview['diff'])|round(2)}}</th>
         
@@ -643,8 +644,8 @@ Home
 {%endif%}
 {%endif%}
 
-{% if zrep %}
-{% if deposit%}
+{% if zrep and rate%}
+{% if deposit and rate%}
 <form action="deletedeposit", method = "post">
   <div class="table-container">
       <table class="table table-hover">
@@ -835,7 +836,7 @@ Home
   </div>
 
 {%endif%}
-{%endif%}
+{%endif%}{%endif%}
 
     <script>
 
@@ -1062,9 +1063,9 @@ Home
         function ttlSum() {
           
 
-          {%if info%}
-          const current_rate_jodValue ={{info[0]['jod']}};
-          const current_rate_usdValue ={{info[0]['usd']}}; 
+          {%if rate%}
+          const current_rate_jodValue ={{rate[0]['jod']}};
+          const current_rate_usdValue ={{rate[0]['usd']}}; 
           {%else%}
           const current_rate_usdValue = parseFloat(current_rate_usd.value) || 0;
           const current_rate_jodValue = parseFloat(current_rate_jod.value) || 0;
@@ -1127,42 +1128,37 @@ Home
           }
       }
   </script>
-
-
-<script>
-  // Function to handle Enter key press and move to the next input field
-  function handleEnterKeyPress(event, inputId) {
-    if (event.key === "Enter") {
-      event.preventDefault(); // Prevent the default form submission
-  
-      const inputs = document.querySelectorAll("input"); // Get all input elements
-      const currentInput = document.getElementById(inputId);
-      const currentIndex = Array.from(inputs).indexOf(currentInput);
-  
-      let nextIndex = currentIndex + 1;
-      while (nextIndex < inputs.length && inputs[nextIndex].disabled) {
-        nextIndex++; // Skip disabled input fields
-      }
-  
-      if (nextIndex < inputs.length) {
-        const nextInput = inputs[nextIndex];
-        nextInput.focus(); // Focus on the next enabled input field
+  <script>
+    // Function to handle Enter key press and move to the next input field
+    function handleEnterKeyPress(event, inputId) {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Prevent the default form submission
+    
+        const inputs = document.querySelectorAll("input"); // Get all input elements
+        const currentInput = document.getElementById(inputId);
+        const currentIndex = Array.from(inputs).indexOf(currentInput);
+    
+        let nextIndex = currentIndex + 1;
+        while (nextIndex < inputs.length && inputs[nextIndex].disabled) {
+          nextIndex++; // Skip disabled input fields
+        }
+    
+        if (nextIndex < inputs.length) {
+          const nextInput = inputs[nextIndex];
+          nextInput.focus(); // Focus on the next enabled input field
+        }
       }
     }
-  }
-  
-  // Attach the Enter key press event listener to each input field
-  document.addEventListener("DOMContentLoaded", function() {
-    const inputs = document.querySelectorAll("input");
-  
-    inputs.forEach(input => {
-      input.addEventListener("keydown", function(event) {
-        handleEnterKeyPress(event, input.id);
+    
+    // Attach the Enter key press event listener to each input field
+    document.addEventListener("DOMContentLoaded", function() {
+      const inputs = document.querySelectorAll("input");
+    
+      inputs.forEach(input => {
+        input.addEventListener("keydown", function(event) {
+          handleEnterKeyPress(event, input.id);
+        });
       });
     });
-  });
-  </script>
-  
-
-  
+    </script>
 {% endblock %}

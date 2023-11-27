@@ -1,0 +1,207 @@
+{% extends 'acclayout.html' %}
+
+{% block title %}
+JDECo Report
+{% endblock %}
+
+{% block main %}
+
+<style>
+    /* Overall form styling */
+    #electricity-form {
+        width: 80%;
+        margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Smaller table styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        border: 1px solid #ccc;
+        padding: 6px; /* Reduced padding for smaller cells */
+        text-align: center;
+    }
+
+    table th {
+        background-color: #333;
+        color: #fff;
+        font-size: 16px; /* Smaller font size for headers */
+    }
+
+    /* Form input fields */
+    input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    /* Autofocus styling */
+    input[autofocus] {
+        outline: 2px solid #007bff;
+    }
+
+    /* Submit button styling */
+    #submit, #edit {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #submit:hover, #edit:hover {
+        background-color: #0056b3;
+    }
+
+    /* Tables container and table styling */
+    #tables {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #tables table {
+        width: 40%; /* Adjust the width as needed */
+    }
+
+    /* Additional styles for the Services tables */
+    #services-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+
+    }
+
+    #services-container table {
+        width: 48%; /* Adjust the width as needed */
+    }
+    .table-wrapper {
+        max-height: 350px; /* Adjust the height as needed */
+        overflow-y: auto;
+      }
+      table.table.table-hover th {
+        background-color: #333; /* Normal background color */
+        color: #fff; /* Normal text color */
+      }
+    
+      table.table.table-hover th:hover {
+        background-color: #333; /* Background color on hover (same as normal) */
+        color: #fff; /* Text color on hover (same as normal) */
+      }
+
+</style>
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    
+    <header>JDECo Report {% if electricity %}for Bravo {{electricity[0]['store_id'] }} {% endif %}</header>
+    <div class="table-wrapper">
+        <table id="main-table" class="table table-hover">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Holley 1</th>
+                <th scope="col">Holley 2</th>
+                <th scope="col">Invoices</th>
+                <th scope="col">Actual Sale</th>
+                <th scope="col">System Sale</th>
+                <th scope="col">Difference</th>
+                <th scope="col">Remaining Balance</th>
+                <th scope="col">Notes</th>
+            </tr>
+            {% if electricity %}
+            {%for i in electricity%}
+            <tr>
+                <td>{{i['cdate']}}</td>     
+                <td>{{i['holley1']}} ILS</td>
+                <td>{{i['holley2']}} ILS</td>
+                <td>{{i['invoices']}} ILS</td>
+                <td>{{i['actualSale']}} ILS</td>
+                <td>{{i['systemSale']}} ILS</td>
+                <td>{{i['diff']}} ILS</td>
+                <td>{{i['remainingBalance']}} ILS</td>
+                <td>{{i['notes']}}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+        </table>
+    </div>
+    <br><br>
+        <header>Total</header>
+        <table id="total-table" class="table-wrapper">
+        <tr>
+            <th scope="col">Holley 1</th>
+            <th scope="col">Holley 2</th>
+            <th scope="col">Invoices</th>
+            <th scope="col">Actual Sale</th>
+            <th scope="col">System Sale</th>
+            <th scope="col">Difference</th>
+            <th scope="col">Remaining Balance</th>
+        </tr>
+        {% if total %}
+        <tr>
+            <td>{{total['holley1']}} ILS</td>
+            <td>{{total['holley2']}} ILS</td>
+            <td>{{total['invoices']}} ILS</td>
+            <td>{{total['actualSale']}} ILS</td>
+            <td>{{total['systemSale']}} ILS</td>
+            <td>{{total['diff']}} ILS</td>
+            <td>
+            {%if electricity%}
+            {%set last = electricity|last %}
+            {{last['remainingBalance']}} 
+            ILS
+            {%endif%}
+            </td>
+            {% endif %}
+        </tr>
+    </table>
+    <br>
+    <div class="button">
+        <button id="export-btn" type="button" class="btn btn-dark">Export to Excel</button>
+    </div>
+</div>
+
+</body>
+
+<script>
+    // Function to export both tables to Excel
+    function exportToExcel() {
+        /* Get table elements */
+        var mainTable = document.getElementById('main-table');
+        var totalTable = document.getElementById('total-table');
+
+        /* Convert tables to worksheet and add to xlsx object */
+        var wb = XLSX.utils.book_new();
+        var mainWorksheet = XLSX.utils.table_to_sheet(mainTable, { sheet: "Main Table" });
+        var totalWorksheet = XLSX.utils.table_to_sheet(totalTable, { sheet: "Total Table" });
+
+        XLSX.utils.book_append_sheet(wb, mainWorksheet, "Main Table");
+        XLSX.utils.book_append_sheet(wb, totalWorksheet, "Total Table");
+
+        /* Save workbook as Excel file */
+        XLSX.writeFile(wb, 'PALPAY_Report.xlsx');
+    }
+
+    // Add click event listener to the export button
+    document.getElementById('export-btn').addEventListener('click', exportToExcel);
+</script>
+
+
+{% endblock %}

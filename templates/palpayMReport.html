@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Sales Invoice</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .invoice {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .details table,
+        .sale table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .details th,
+        .sale th,
+        .details td,
+        .sale td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .details th,
+        .sale th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .sale .saleAmount {
+            font-weight: bold;
+            color: #2e8b57;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .details th,
+            .sale th,
+            .details td,
+            .sale td {
+                padding: 8px;
+            }
+        }
+        
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="A4" class="invoice">
+            {% if dates %}
+            <div class="details">
+                <table>
+                    <tr>
+                        <th style="text-align:center" colspan="2">PALPAY Cash Report</th>
+                    </tr>
+                    <tr>
+                        <th>Store:</th>
+                        <td>{{ store }}</td>
+                    </tr>
+                    {% if dates|length > 1 %}
+                    <tr>
+                        <th>Dates:</th>
+                        <td>{{ dates[:1][0] }} - {{ dates[-1:][0] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <th>Date:</th>
+                        <td>{{ dates[:1][0] }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+            {% endif %}
+
+            {% if cash_ils or cash_usd or cash_jod%}
+            <div class="sale">
+                <table>
+                    <tr>
+                        <th>Total ILS:</th>
+                        <td class="saleAmount">{{ cash_ils }} ILS</td>
+                    </tr>
+                    <tr>
+                        <th>Total USD:</th>
+                        <td class="saleAmount">{{ cash_usd }} USD</td>
+                    </tr>
+                    <tr>
+                        <th>Total JOD:</th>
+                        <td class="saleAmount">{{ cash_jod }} JOD</td>
+                    </tr>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <title>Bank Deposit</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #f0f0f0;
+          margin: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+      }
+
+      .container {
+          max-width: 1200px;
+          padding: 20px;
+      }
+
+      .form {
+          background-color: #ffffff;
+          padding: 20px;
+          border-radius: 5px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #A4 {
+          width: 8.27in; /* A4 width in inches */
+          height: 11.69in; /* A4 height in inches */
+          margin: auto; /* Center the A4 div in the viewport */
+          /* border: 1px solid #000; Add a border to indicate paper boundary */
+          position: relative; /* Position the text elements relative to this container */
+      }
+
+      h2 {
+          text-align: center;
+          color: #333;
+      }
+
+      .table-container {
+          display: flex;
+          justify-content: space-around;
+          margin-bottom: 20px;
+      }
+
+      table {
+          border-collapse: collapse;
+          width: 100%;
+          background-color: #fff;
+      }
+
+      th, td {
+          padding: 8px;
+          text-align: center;
+          border: 1px solid #ddd;
+          vertical-align: middle;
+      }
+
+      .table-header {
+          background-color: #f0f5f9;
+      }
+
+      .logo-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          height: 70px;
+      }
+
+      .logo {
+          max-width: 100%;
+          max-height: 100%;
+          margin: 0 15px 0 0;
+      }
+
+      .apscEnglish,
+      .apscArabic {
+          padding: 8px;
+          margin-bottom: 0;
+      }
+
+      input {
+          width: 90%;
+          height: 100%;
+          text-align: center;
+          padding: 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+      }
+
+      /* Add background colors and styles for rows */
+      tr:nth-child(odd) {
+          background-color: #f2f2f2;
+      }
+
+      .highlight {
+          background-color: #ffc107; /* Yellow background for this class */
+      }
+      header {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="A4">
+    <div class="logo-container">
+        <h4 style="font-size:14px" class="apscEnglish">Arab Palestinian Shoping Centers</h4>
+        <img src="static\clearlogo.png" alt="Bank Logo" class="logo">
+        <h4 class="apscArabic">الشركة العربية الفلسطينية لمراكز التسوق</h4>
+    </div>
+    {%if dates%}
+    <div>
+        <table class="table table-hover">
+        <tr>
+            <th style="width:110px; font-size:13px">Store: {% if store %} {{store}} {% endif %}</th>
+            <th style="width:160px; font-size:13px" id="currentDateHeader">Current Date</th>
+            <th style="border-top: none;border-left: none;border-right: none; width:140px;">نموذج ايداع نقدي</th>
+            <td style="width:160px;"><input {%if studNumber %} value="{{studNumber}}" {%endif%} disabled style="color:black;"></td>
+            <th style="width:110px;" >رقم المربط</th>
+        </tr>
+
+        {% if dates|length > 1 %}
+        <tr>
+            <th>Dates:</th>
+            <th>From:</th>
+            <th>{{ dates[:1][0] }}</th>
+            <th>To:</th>
+            <th>{{ dates[-1:][0] }}</th>
+        </tr>
+        {% else %}
+        <tr>
+          <th>For Date:</th>
+          <th>{{ dates[:1][0] }}</th>
+        </tr>
+        {% endif %}
+
+        <tr style="width:100%;">
+          <th style="width:110px;">Bank: </th>
+          <th>{% if bankAccount %} {{ bankAccount['bankName'] }} {% endif %}</th>
+          <th>Account Number:</th>
+          <th style="border-right:none;">{% if bankAccount %} {{ bankAccount['accountNumber'] }} {% endif %}</th>
+          <th style="border-left:none;"></th>
+        </tr>
+        </table>
+    </div>
+
+
+    {%endif%}
+    {% if deposit%}
+      <div class="table-container">
+        <table class="table table-hover">
+          <tr>
+
+              <th colspan="3">شيقل</th>
+
+          </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td>200</td>
+            <th>{{deposit[0]['ils_200']}}</th>
+            <td>{{ (deposit[0]['ils_200'] * 200) }}</td>
+          </tr>
+          <tr>
+            <td>100</td>
+            <th>{{deposit[0]['ils_100']}}</th>
+            <td>{{ (deposit[0]['ils_100'] * 100) }}</td>
+          </tr>
+          <tr>
+            <td>50</td>
+            <th>{{deposit[0]['ils_50']}}</th>
+            <td>{{ (deposit[0]['ils_50'] * 50) }}</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <th>{{deposit[0]['ils_20']}}</th>
+            <td>{{ ( deposit[0]['ils_20'] * 20 ) }}</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <th>{{deposit[0]['ils_10']}}</th>
+            <td>{{ (deposit[0]['ils_10'] * 10) }}</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <th>{{deposit[0]['ils_5']}}</th>
+            <td>{{ (deposit[0]['ils_5'] * 5)}}</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <th>{{deposit[0]['ils_2']}}</th>
+            <td>{{ (deposit[0]['ils_2'] * 2) }}</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <th>{{deposit[0]['ils_1']}}</th>
+            <td>{{ (deposit[0]['ils_1'] * 1) }}</td>
+          </tr>
+          <tr>
+            <td>0.5</td>
+            <th>{{deposit[0]['ils_05']}}</th>
+            <td>{{ ((deposit[0]['ils_05'] * 0.5)|round(2)) }}</td>
+          </tr>
+          <tr>
+              <td style="border-right: none;"></td>
+              <td style="border-right: none;border-left: none;"></td>
+              <th style="border-left: none">{{( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+          </tr>
+        </table>
+
+        <table class="table table-hover ">
+          <tr>
+
+            <th colspan="3">دولار</th>
+
+        </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td>100</td>
+            <th>{{deposit[0]['usd_100']}}</th>
+            <td>{{ (deposit[0]['usd_100'] * 100) }}</td>
+          </tr>
+          <tr>
+            <td>50</td>
+            <th>{{deposit[0]['usd_50']}}</th>
+            <td>{{ (deposit[0]['usd_50'] * 50) }}</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <th>{{deposit[0]['usd_20']}}</th>
+            <td>{{ ( deposit[0]['usd_20'] * 20 ) }}</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <th>{{deposit[0]['usd_10']}}</th>
+            <td>{{ (deposit[0]['usd_10'] * 10) }}</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <th>{{deposit[0]['usd_5']}}</th>
+            <td>{{ (deposit[0]['usd_5'] * 5)}}</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <th>{{deposit[0]['usd_2']}}</th>
+            <td>{{ (deposit[0]['usd_2'] * 2) }}</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <th>{{deposit[0]['usd_1']}}</th>
+            <td>{{ (deposit[0]['usd_1'] * 1) }}</td>
+          </tr>
+          <tr>
+              <td style="border-right: none"></td>
+              <td style="border-right: none;border-left: none"></td>
+              <th style="border-left: none">{{( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</th>
+          </tr>
+        </table>
+
+        <table class="table table-hover">
+          <tr>
+
+            <th colspan="3">دينار</th>
+
+        </tr>
+          <tr>
+              <th>الفئة</th>
+              <th>العدد</th>
+              <th>المجموع</th>
+          </tr>
+          <tr>
+            <td>50</td>
+            <th>{{deposit[0]['jod_50']}}</th>
+            <td>{{ (deposit[0]['jod_50'] * 50) }}</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <th>{{deposit[0]['jod_20']}}</th>
+            <td>{{ ( deposit[0]['jod_20'] * 20 ) }}</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <th>{{deposit[0]['jod_10']}}</th>
+            <td>{{ (deposit[0]['jod_10'] * 10) }}</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <th>{{deposit[0]['jod_5']}}</th>
+            <td>{{ (deposit[0]['jod_5'] * 5)}}</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <th>{{deposit[0]['jod_1']}}</th>
+            <td>{{ (deposit[0]['jod_1'] * 1) }}</td>
+          </tr>
+          <tr>
+            <td style="border-right: none"></td>
+            <td style="border-right: none;border-left: none"></td>
+            <th style="border-left: none">{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</th>
+          </tr>
+        </table>
+      </div>
+    {% endif %}
+    {%if notes%} 
+      {% if total_electricity and total_palpay%}
+        <div>
+          <table>
+            <tr>
+              <td>{{total_electricity['actualSale']}} ILS</td>
+              <th>Jerusalem District Electricity Company</th>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <br>
+          <header>PALPAY</header>
+
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <td>{{ total_palpay['cash_ils'] }} ILS</td>
+              <td>{{ total_palpay['cash_usd'] }} USD</td>
+              <td>{{ total_palpay['cash_jod'] }} JOD</td>
+            </tr>
+          </table>
+        </div>
+        <br>
+        <div>
+          <header>Total Deposit</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <th>{{ total_palpay['cash_ils'] + total_electricity['actualSale'] + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+              <th>{{ total_palpay['cash_usd'] + ( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</th>
+              <th>{{ total_palpay['cash_jod'] + ( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</th>
+            </tr>
+          </table>
+        </div>
+      {%elif total_electricity%}
+        <div>
+            <table>
+              <tr>
+                <td>{{total_electricity['actualSale']}} ILS</td>
+                <th>Jerusalem District Electricity Company</th>
+              </tr>
+            </table>
+        </div>
+        <br><br>
+        <div>
+          <header>Total Deposit</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <td>{{total_electricity['actualSale'] + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</td>
+              <td>{{( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</td>
+              <td>{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</td>
+            </tr>
+          </table>
+        </div>
+        {%elif total_palpay%}
+        <div>
+          <header>PALPAY</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <td>{{ total_palpay['cash_ils'] }} ILS</td>
+              <td>{{ total_palpay['cash_usd'] }} USD</td>
+              <td>{{ total_palpay['cash_jod'] }} JOD</td>
+            </tr>
+          </table>
+        </div>
+        <br><br>
+        <div>
+          <header>Total Deposit</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <th>{{ total_palpay['cash_ils'] + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+              <th>{{ total_palpay['cash_usd'] + ( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</th>
+              <th>{{ total_palpay['cash_jod'] + ( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</th>
+            </tr>
+          </table>
+        </div>
+      {% endif %}
+      <br>
+      <table style="width:75%">
+        <tr>
+          <th style="text-align:left;width:13%">Notes:</th>
+          <td styl="text-align:left;">{{ notes }}</td>
+        </tr>
+    {% else %}
+      {% if total_electricity and total_palpay%}
+        <div>
+          <table>
+            <tr>
+              <td>{{total_electricity['actualSale']}} ILS</td>
+              <th>Jerusalem District Electricity Company</th>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <br><br>
+          <header>PALPAY</header>
+
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <td>{{ total_palpay['cash_ils'] }} ILS</td>
+              <td>{{ total_palpay['cash_usd'] }} USD</td>
+              <td>{{ total_palpay['cash_jod'] }} JOD</td>
+            </tr>
+          </table>
+        </div>
+        <br><br>
+        <div>
+          <header>Total Deposit</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <th>{{ total_palpay['cash_ils'] + total_electricity['actualSale'] + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+              <th>{{ total_palpay['cash_usd'] + ( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</th>
+              <th>{{ total_palpay['cash_jod'] + ( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</th>
+            </tr>
+          </table>
+        </div>
+      {%elif total_electricity%}
+        <div>
+            <table>
+              <tr>
+                <td>{{total_electricity['actualSale']}} ILS</td>
+                <th>Jerusalem District Electricity Company</th>
+              </tr>
+            </table>
+        </div>
+        <br><br>
+        <div>
+          <header>Total Deposit</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <th>{{total_electricity['actualSale'] + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+              <th>{{( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</th>
+              <th>{{( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</th>
+            </tr>
+          </table>
+        </div>
+        {%elif total_palpay%}
+        <div>
+          <header>PALPAY</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <td>{{ total_palpay['cash_ils'] }} ILS</td>
+              <td>{{ total_palpay['cash_usd'] }} USD</td>
+              <td>{{ total_palpay['cash_jod'] }} JOD</td>
+            </tr>
+          </table>
+        </div>
+        <br><br>
+        <div>
+          <header>Total Deposit</header>
+          <table>
+            <tr>
+              <th style="width:33%;">شيقل</th>
+              <th style="width:33%;">دولار</th>
+              <th style="width:33%;">دينار</th>
+            </tr>
+            <tr>
+              <th>{{ total_palpay['cash_ils'] + ( (deposit[0]['ils_200'] * 200) + (deposit[0]['ils_100'] * 100) +(deposit[0]['ils_50'] * 50) + ( deposit[0]['ils_20'] * 20 ) + (deposit[0]['ils_10'] * 10) + (deposit[0]['ils_5'] * 5) + (deposit[0]['ils_2'] * 2) + (deposit[0]['ils_1'] * 1) + ((deposit[0]['ils_05'] * 0.5)|round(2)))}} ILS</th>
+              <th>{{ total_palpay['cash_usd'] + ( ( (deposit[0]['usd_100'] * 100) + (deposit[0]['usd_50'] * 50) + ( deposit[0]['usd_20'] * 20 ) + (deposit[0]['usd_10'] * 10) + (deposit[0]['usd_5'] * 5) + (deposit[0]['usd_2'] * 2) + (deposit[0]['usd_1'] * 1)))}} USD</th>
+              <th>{{ total_palpay['cash_jod'] + ( ( (deposit[0]['jod_50'] * 50) + ( deposit[0]['jod_20'] * 20 ) + (deposit[0]['jod_10'] * 10) + (deposit[0]['jod_5'] * 5) + (deposit[0]['jod_1'] * 1)))}} JOD</th>
+            </tr>
+          </table>
+        </div>
+      {% endif %}
+    {% endif%}
+  </div>
+</body>
+  <script>
+    // JavaScript code to get the current date
+    var currentDate = new Date();
+    var year = currentDate.getFullYear();
+    var month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    var day = currentDate.getDate().toString().padStart(2, '0');
+
+    // Format the date as "yyyy/mm/dd"
+    var formattedDate ="Deposit Date: " + year + "/" + month + "/" + day;
+
+    // Display the formatted date in the table header
+    document.getElementById("currentDateHeader").textContent = formattedDate;
+</script>
+
+</html>

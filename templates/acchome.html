@@ -5,81 +5,234 @@ Home
 {% endblock %}
 
 {% block main %}
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    margin: 0;
-    padding: 0;
-  }
 
-  .container {
-    max-width: 500px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
 
-  h1 {
-    font-size: 24px;
-    color: #333;
-    text-align: center;
-    margin-bottom: 20px;
-  }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
 
-  .styled-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f5f5f5;
-    font-size: 16px;
-    color: #555;
-  }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .single {
+            display: flex;
+            justify-content: space-between;
+            width: 50%; /* Set the desired width */
+            margin: 0 auto;
+          }
 
-  .mb-3 {
-    margin-bottom: 20px;
-  }
+        .form {
+            flex: 1;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
 
-  .btn-primary {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 12px 20px;
-    cursor: pointer;
-    width: 100%;
-  }
+        .form h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+        }
 
-  .btn-primary:hover {
-    background-color: #0056b3;
-  }
-</style>
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .styled-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            background-color: #f5f5f5;
+        }
+
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .container-title {
+
+            text-align: center;
+            margin: auto;
+        }
+        .single-title {
+
+            text-align: center;
+            margin: auto;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>Select Date and Store</h1>
-    <form action="/report" method="post">
-      <div class="mb-3">
-        <input type="date" id="selected_date" name="selected_date" class="styled-select">
-      </div>
-      <div class="mb-3">
-        <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
-          <option disabled selected>Select Store</option>
-          {% if stores %}
-          {% for store in stores %}
-          {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
-          <option value="{{ store['name'] }}">{{ store['name'] }}</option>
-          {% endif %}
-          {% endfor %}
-          {% endif %}
-        </select>
-      </div>
-      <button class="btn btn-primary" type="submit" id="addButton">Select</button>
+
+
+    <div class="single">
+        <form class="form" action="/CCRReport" method="post" target="_blank">
+            <h1>CCR Report</h1>
+    
+            <label for="FromDate" class="form-label">From Date:</label>
+            <div class="mb-3">
+                <input type="date" id="FromDate" name="FromDate" class="styled-select">
+            </div>
+    
+            <label for="ToDate" class="form-label">To Date:</label>
+            <div class="mb-3">
+                <input type="date" id="ToDate" name="ToDate" class="styled-select">
+            </div>
+    
+            <label for="storeSelect" class="form-label">Select Store:</label>
+            <div class="mb-3">
+                <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
+                    <option disabled selected>Select Store</option>
+                    {% if stores %}
+                    {% for store in stores %}
+                    {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                    <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <button class="btn-primary" type="submit" id="addButton">Select</button>
+        </form>
+    
+    </div>
+
+
+
+
+
+<div class="container">
+    <form class="form" action="/report" method="post" target="_blank">
+        <h1>CDCR Report</h1>
+
+        <label for="selected_date" class="form-label">Select Date and Store:</label>
+
+        <div class="mb-3">
+            <input type="date" id="selected_date" name="selected_date" class="styled-select">
+        </div>
+        <div class="mb-3">
+            <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
+                <option disabled selected>Select Store</option>
+                {% if stores %}
+                {% for store in stores %}
+                {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <button class="btn-primary" type="submit" id="addButton">Select</button>
     </form>
-  </div>
+    
+    <form class="form" action="/depositReport" method="post" target="_blank">
+        <h1>Deposit Report</h1>
+
+        <label for="selected_date" class="form-label">Select Date and Store:</label>
+
+        <div class="mb-3">
+            <input type="date" id="selected_date" name="selected_date" class="styled-select">
+        </div>
+        <div class="mb-3">
+            <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
+                <option disabled selected>Select Store</option>
+                {% if stores %}
+                {% for store in stores %}
+                {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <button class="btn-primary" type="submit" id="addButton">Select</button>
+    </form>
+</div>
+
+<div class="container">
+    <form class="form" action="/JDECoReport" method="post" target="_blank">
+        <h1>JDECo Report</h1>
+
+        <label for="FromDate" class="form-label">From Date:</label>
+        <div class="mb-3">
+            <input type="date" id="FromDate" name="FromDate" class="styled-select">
+        </div>
+
+        <label for="ToDate" class="form-label">To Date:</label>
+        <div class="mb-3">
+            <input type="date" id="ToDate" name="ToDate" class="styled-select">
+        </div>
+
+        <label for="storeSelect" class="form-label">Select Store:</label>
+        <div class="mb-3">
+            <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
+                <option disabled selected>Select Store</option>
+                {% if stores %}
+                {% for store in stores %}
+                {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <button class="btn-primary" type="submit" id="addButton">Select</button>
+    </form>
+
+    
+    <form class="form" action="/palpayReport" method="post" target="_blank">
+        <h1>PALPAY Report</h1>
+
+        <label for="FromDate" class="form-label">From Date:</label>
+        <div class="mb-3">
+            <input type="date" id="FromDate" name="FromDate" class="styled-select">
+        </div>
+
+        <label for="ToDate" class="form-label">To Date:</label>
+        <div class="mb-3">
+            <input type="date" id="ToDate" name="ToDate" class="styled-select">
+        </div>
+
+        <label for="storeSelect" class="form-label">Select Store:</label>
+        <div class="mb-3">
+            <select id="storeSelect" class="styled-select" name="storeSelect" aria-label="Select Store" onchange="validateForm()">
+                <option disabled selected>Select Store</option>
+                {% if stores %}
+                {% for store in stores %}
+                {% if store['name'] != "Accounting" and store['name'] != "Administration" %}
+                <option value="{{ store['name'] }}">{{ store['name'] }}</option>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <button class="btn-primary" type="submit" id="addButton">Select</button>
+    </form>
+</div>
+
 </body>
 {% endblock %}

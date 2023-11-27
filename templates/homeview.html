@@ -160,13 +160,13 @@ Home
             <th>User</th>
             <th>Store</th>
             <th>Date</th>
-            <th>Created By</th>
+            <th>Rate updated by</th>
         </tr>
         <tr>
           <td>{{uname}}</td>
           <td>{{store}}</td>
           <td>{%if rate%} {{rate[0]['rdate']}} {%endif%}</td>
-          <td>{%if rate%} {{rate[0]['username']}} {%endif%}</td>
+          <td>{%if rate_user%} {{rate_user[0]['username']}} {%endif%}</td>
         </tr>
     </table>
 </div>

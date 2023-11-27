@@ -1,0 +1,393 @@
+{% extends 'managerlayout.html' %}
+
+{% block title %}
+Services
+{% endblock %}
+{% block main %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    /* Overall form styling */
+    #electricity-form {
+        width: 80%;
+        margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Smaller table styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        border: 1px solid #ccc;
+        padding: 6px; /* Reduced padding for smaller cells */
+        text-align: center;
+    }
+
+    table th {
+        background-color: #333;
+        color: #fff;
+        font-size: 16px; /* Smaller font size for headers */
+    }
+
+    /* Form input fields */
+    input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    /* Autofocus styling */
+    input[autofocus] {
+        outline: 2px solid #007bff;
+    }
+
+    /* Submit button styling */
+    #submit, #edit, #submit-palpay {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #submit:hover, #edit:hover {
+        background-color: #0056b3;
+    }
+    #submit-palpay:hover, #edit:hover {
+        background-color: #0056b3;
+    }
+
+    /* Tables container and table styling */
+    #tables {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #tables table {
+        width: 40%; /* Adjust the width as needed */
+    }
+
+    /* Additional styles for the Services tables */
+    #services-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+
+    }
+
+    #services-container table {
+        width: 48%; /* Adjust the width as needed */
+    }
+</style>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {%if electricity%}
+        <header>JDECo</header>
+        <table>
+            <tr>
+                <th scope="col">Holley 1</th>
+                <th scope="col">Holley 2</th>
+                <th scope="col">Invoices</th>
+                <th scope="col">Actual Sale</th>
+                <th scope="col">System Sale</th>
+                <th scope="col">Difference</th>
+                <th scope="col">Remaining Balance</th>
+                <th scope="col">Notes</th>
+            </tr>
+            
+            
+            <form id="electricity-form" action="/editElectricity" method = "post">    
+            <tr>          
+                <td>{{electricity['holley1']}} ILS</td>
+                <td>{{electricity['holley2']}} ILS</td>
+                <td>{{electricity['invoices']}} ILS</td>
+                <td>{{electricity['actualSale']}} ILS</td>
+                <td>{{electricity['systemSale']}} ILS</td>
+                <td>{{electricity['diff']}} ILS</td>
+                <td>{{electricity['remainingBalance']}} ILS</td>
+                <td>{{electricity['notes']}}</td>
+            </tr>
+            </table>
+            <td><button class="btn btn-primary btn-sm" type="submit" id="edit" >Edit</button>
+            <td><input type="hidden" name="row_id" id = "row_id"value="{{ electricity['id'] }}"></td>  
+            </form>
+
+    {% else %}
+        <header>JDECo</header>
+        <table>
+            <tr>
+                <th scope="col">Holley 1</th>
+                <th scope="col">Holley 2</th>
+                <th scope="col">Invoices</th>
+                <th scope="col">Actual Sale</th>
+                <th scope="col">System Sale</th>
+                <th scope="col">Difference</th>
+                <th scope="col">Remaining Balance</th>
+                <th scope="col">Notes</th>
+            </tr>
+            <form id="electricity-form" action="/electricity" method = "post">
+            <tr>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="holley1" name="holley1" step="any" oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="holley2" name="holley2" step="any" oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="invoices" name="invoices" step="any" oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="actualSale" name="actualSale" step="any" required oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="systemSale" name="systemSale" step="any" required disabled oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="difference" name="difference" step="any" disabled oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="balance" name="balance" step="any" required oninput="calculateValues()"></td>
+                <td><input autocomplete="off" autofocus id="notes" name="notes" style="width:200px" ></td>
+            </tr>
+        </table>
+        <td><button class="btn btn-primary btn-sm" type="submit" id="submit" disabled>Submit</button>
+        </form>
+    {% endif %}
+
+<br><br>
+    {% if palpay %}
+        <header>PALPAY</header>
+        <form id="palpay-form" action="/editPalpay" method = "post">
+            <table>
+                <tr>
+                    <th scope="col">Currency</th>
+                    <th scope="col">System movements</th>
+                    <th scope="col">Cash</th>
+                    <th scope="col">Visa</th>
+                    <th scope="col">Total income</th>
+                    <th scope="col">Difference</th>
+                    <th scope="col">Note</th>
+                </tr>
+                
+                <tr>
+                    <th>ILS</th>
+                    <td>{{ palpay['sys_ils'] }}</td>
+                    <td>{{ palpay['cash_ils'] }}</td>
+                    <td>{{ palpay['visa_ils'] }}</td>
+                    <td>{{ palpay['ttl_ils'] }}</td>
+                    <td>{{ palpay['diff_ils'] }}</td>
+                    <td>{{ palpay['note_ils'] }}</td>
+                </tr>
+                <tr>
+                    <th>USD</th>
+                    <td>{{ palpay['sys_usd'] }}</td>
+                    <td>{{ palpay['cash_usd'] }}</td>
+                    <td>{{ palpay['visa_usd'] }}</td>
+                    <td>{{ palpay['ttl_usd'] }}</td>
+                    <td>{{ palpay['diff_usd'] }}</td>
+                    <td>{{ palpay['note_usd'] }}</td>
+                </tr>
+                <tr>
+                    <th>JOD</th>
+                    <td>{{ palpay['sys_jod'] }}</td>
+                    <td>{{ palpay['cash_jod'] }}</td>
+                    <td>{{ palpay['visa_jod'] }}</td>
+                    <td>{{ palpay['ttl_jod'] }}</td>
+                    <td>{{ palpay['diff_jod'] }}</td>
+                    <td>{{ palpay['note_jod'] }}</td>
+                </tr>
+            </table> 
+            <td><input type="hidden" name="row_id" id = "row_id"value="{{ palpay['id'] }}"></td>
+            <td><button class="btn btn-primary btn-sm" type="submit" id="edit" >Edit</button></td>
+    {% else %}
+        <header>PALPAY</header>
+        <table>
+            <tr>
+                <th scope="col">Currency</th>
+                <th scope="col">System movements</th>
+                <th scope="col">Cash</th>
+                <th scope="col">Visa</th>
+                <th scope="col">Total income</th>
+                <th scope="col">Difference</th>
+                <th scope="col">Note</th>
+            </tr>
+            <form id="palpay-form" action="/palpay" method = "post">
+            <tr>
+                <th>ILS</th>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="sys_ils" name="sys_ils" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="cash_ils" name="cash_ils" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="visa_ils" name="visa_ils" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="ttl_ils" name="ttl_ils" step="any" disabled></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="diff_ils" name="diff_ils" step="any" disabled></td>
+                <td><input autocomplete="off" autofocus type="text" id="note_ils" name="note_ils" step="any"></td>
+            </tr>
+            <tr>
+                <th>USD</th>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="sys_usd" name="sys_usd" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="cash_usd" name="cash_usd" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="visa_usd" name="visa_usd" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="ttl_usd" name="ttl_usd" step="any" disabled></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="diff_usd" name="diff_usd" step="any" disabled></td>
+                <td><input autocomplete="off" autofocus type="text" id="note_usd" name="note_usd" step="any"></td>
+            </tr>
+            <tr>
+                <th>JOD</th>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="sys_jod" name="sys_jod" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="cash_jod" name="cash_jod" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="visa_jod" name="visa_jod" step="any"></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="ttl_jod" name="ttl_jod" step="any" disabled></td>
+                <td><input autocomplete="off" autofocus step="any" min="0" type="number" id="diff_jod" name="diff_jod" step="any" disabled></td>
+                <td><input autocomplete="off" autofocus type="text" id="note_jod" name="note_jod" step="any"></td>
+            </tr>
+        </table> 
+        <td><button class="btn btn-primary btn-sm" type="submit" id="submit-palpay" disabled>Submit</button>
+        </form>
+    {% endif %}
+
+<script>
+    const holley1 = document.getElementById('holley1');
+    const holley2 = document.getElementById('holley2');
+    const invoices = document.getElementById('invoices');
+    const actualSale = document.getElementById('actualSale');
+    const systemSale = document.getElementById('systemSale');
+    const difference = document.getElementById('difference');
+    const balance = document.getElementById('balance');
+    const submitButton = document.getElementById('submit');
+
+    // Function to calculate systemSale and difference
+    function calculateValues() {
+        const holley1Value = parseFloat(holley1.value) || 0;
+        const holley2Value = parseFloat(holley2.value) || 0;
+        const invoicesValue = parseFloat(invoices.value) || 0;
+        const actualSaleValue = parseFloat(actualSale.value) || 0;
+
+        const systemSaleValue = holley1Value + holley2Value + invoicesValue;
+        const differenceValue = actualSaleValue - systemSaleValue;
+
+        systemSale.value = systemSaleValue;
+        difference.value = differenceValue;
+    }
+
+    // Function to check if all required fields are filled
+    function checkRequiredFields() {
+        return actualSale.value && systemSale.value && balance.value;
+    }
+
+    // Add event listeners for input fields
+    holley1.addEventListener('input', calculateValues);
+    holley2.addEventListener('input', calculateValues);
+    invoices.addEventListener('input', calculateValues);
+    actualSale.addEventListener('input', () => {
+        calculateValues();
+        submitButton.disabled = !checkRequiredFields();
+    });
+    balance.addEventListener('input', () => {
+        submitButton.disabled = !checkRequiredFields();
+    });
+
+    // Initial calculation and button state
+    calculateValues();
+    submitButton.disabled = !checkRequiredFields();
+</script>
+
+<script language="Javascript">
+    // Function to handle Enter key
+    document.onkeydown = function() {
+        if (event.keyCode == 13) {
+            if (document.activeElement.tagName.toLowerCase () != "textarea") {
+                      event.preventDefault();
+                      return false;
+                }
+        }
+    }
+  </script>
+  <script>
+    // Function to handle Enter key press and move to the next input field
+    function handleEnterKeyPress(event, inputId) {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Prevent the default form submission
+    
+        const inputs = document.querySelectorAll("input"); // Get all input elements
+        const currentInput = document.getElementById(inputId);
+        const currentIndex = Array.from(inputs).indexOf(currentInput);
+    
+        let nextIndex = currentIndex + 1;
+        while (nextIndex < inputs.length && inputs[nextIndex].disabled) {
+          nextIndex++; // Skip disabled input fields
+        }
+    
+        if (nextIndex < inputs.length) {
+          const nextInput = inputs[nextIndex];
+          nextInput.focus(); // Focus on the next enabled input field
+        }
+      }
+    }
+    
+    // Attach the Enter key press event listener to each input field
+    document.addEventListener("DOMContentLoaded", function() {
+      const inputs = document.querySelectorAll("input");
+    
+      inputs.forEach(input => {
+        input.addEventListener("keydown", function(event) {
+          handleEnterKeyPress(event, input.id);
+        });
+      });
+    });
+
+    function EnableButton(currency) {
+        // ... (existing calculation code remains the same)
+        // Enable the button if any of the fields have a value
+        const fields = ['sys', 'cash', 'visa'];
+        const anyFieldHasValue = fields.some(field => {
+            const value = parseFloat(document.getElementById(`${field}_${currency}`).value);
+            return !isNaN(value);
+        });
+        document.getElementById('submit-palpay').disabled = !anyFieldHasValue;
+    }
+    
+    // Function to handle input changes and perform calculations for each currency
+    function handleEnableButton(currency) {
+        EnableButton(currency);
+    }
+    
+    // Add event listeners for input changes on each currency
+    ['ils', 'usd', 'jod'].forEach(currency => {
+        ['sys', 'cash', 'visa'].forEach(type => {
+            const inputField = document.getElementById(`${type}_${currency}`);
+            inputField.addEventListener('input', () => {
+                handleEnableButton(currency);
+            });
+        });
+    });
+    function calculate(currency) {
+        const sys = parseFloat(document.getElementById(`sys_${currency}`).value) || 0;
+        const cash = parseFloat(document.getElementById(`cash_${currency}`).value) || 0;
+        const visa = parseFloat(document.getElementById(`visa_${currency}`).value) || 0;
+    
+        const ttl = cash + visa;
+        const diff = sys - ttl;
+    
+        document.getElementById(`ttl_${currency}`).value = ttl.toFixed(2);
+        document.getElementById(`diff_${currency}`).value = diff.toFixed(2);
+    }
+    
+    // Function to handle input changes and perform calculations for each currency
+    function handleInputChanges(currency) {
+        calculate(currency);
+    }
+    
+    // Add event listeners for input changes on each currency
+    ['ils', 'usd', 'jod'].forEach(currency => {
+        ['sys', 'cash', 'visa'].forEach(type => {
+            document.getElementById(`${type}_${currency}`).addEventListener('input', () => {
+                handleInputChanges(currency);
+            });
+        });
+    });
+    
+    </script>
+</body>
+{% endblock %}
