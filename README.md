@@ -286,4 +286,4 @@ Please make sure to replace placeholders like /path/to/your/flask/project with t
 
 ## Project Testing Credentials
 - Username: admin
-- Password: admin
+- Password: admin123
