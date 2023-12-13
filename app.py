@@ -1,20 +1,9 @@
-import os
+from requirements import *
+from login import login
+from registration import register
 
-import datetime
-from decimal import Decimal, ROUND_HALF_EVEN
-from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
-from tempfile import mkdtemp
-from werkzeug.security import check_password_hash, generate_password_hash
-import pytz
-from helpers import login_required, apology
-from flask import jsonify
-from datetime import datetime, timezone, timedelta
-import json
-# Configure application
-app = Flask(__name__)
-
+# Set a secret key for the Flask application
+app.secret_key = "your_secret_key_here"
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -24,143 +13,17 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///project.db")
 
-
-
-@app.after_request
-def after_request(response):
-    """Ensure responses aren't cached"""
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
-    return response
-
-# index
 @app.route("/")
 def index():
-    return redirect("login")
+    return redirect("/login")
 
 # login
-@app.route("/login",methods=["GET","POST"])
-def login():
-    session.clear()
-
-    if request.method=="GET":
-        return render_template("/login.html")
-    else:
-        username = request.form.get("username")
-        password = request.form.get("hash")
-
-        if not username:
-            error_username = "Username is required."
-            return render_template("login.html", error_username=error_username)
-
-        if not password:
-            error_password = "Password is required."
-            return render_template("login.html", error_password=error_password)
-
-        rows = db.execute("SELECT hash,id,disable FROM users WHERE username = ?", username)
-        if rows:
-          if rows[0]["disable"] == 1:
-            error_general = "User is disabled"
-            return render_template("login.html", error_general=error_general)
-          if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
-            error_general = "Invalid username or password."
-            return render_template("login.html", error_general=error_general)
-        else:
-          error_general = "Invalid username or password."
-          return render_template("login.html", error_general=error_general)
-        # Remember which user has logged in
-        
-        session["user_id"] = rows[0]["id"]
-
-        # import data from db the view the table and nav
-        userdata = db.execute("select * from users where username = ?", request.form.get("username"))
-      
-        timestamp = datetime.now()
-        timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        db.execute("insert into user_movements (user_id, store_id,movement_type,timestamp) values(?,?,?,?)",session.get("user_id"),userdata[0]['store_id'],"Login",timestamp)
-        if userdata[0]['is_admin'] == 1:
-            # Get stores name's from database
-            users = db.execute("select username,store_id,name from users join stores on users.store_id = stores.id")
-            role = "admin"
-            # Redirect user to register page
-            return redirect("/users",code=302)
-
-        elif userdata[0]['is_manager'] == 1:
-          return redirect("/home",code = 302)
-        elif userdata[0]['is_accounting'] == 1:
-          return redirect("/acchome",code=302)
+@app.route("/login", methods=["GET", "POST"])
+def handle_login():
+    return login() 
 
 # register
-@app.route("/register", methods=["GET", "POST"])
-@login_required
-def register():
-    """Register user"""
-    if request.method == "POST":
-
-        username = request.form.get("username")
-        pass1 = request.form.get("hash1")
-        pass2 = request.form.get("hash2")
-        store = request.form.get("store")
-        unames = db.execute("select username from users")
-
-        # JUST MAKING SURE OF SOME THINGS :D
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username",)
-        # Ensure password was submitted
-        elif not request.form.get("hash1"):
-            return apology("must provide password",)
-        # Ensure confirmation was submitted
-        elif not request.form.get("hash2"):
-            return apology("must re-type the password",)
-        # Ensure passwords fields is matched
-        elif (request.form.get("hash1") != request.form.get("hash2")):
-            return apology("The password fields must match!",)
-        # Ensure the username is not exists
-        for name in unames:
-            if username == name["username"]:
-                return apology("username already exists",)
-        # create passowrd and update the db
-        hpass = generate_password_hash(pass1, salt_length=12)
-        # get rule to pass navbar
-        roles = db.execute("select * from users where id = ?", session.get("user_id"))
-        if roles[0]['is_admin'] == 1:
-            role = "admin"
-        # create condition to get store name and user role role and insert user to users
-        if store == "Administration":
-            storeNumber = 0
-            db.execute("insert into users (username, hash, is_admin, is_super, is_accounting, is_manager, store_id) values (?, ?, ?, ?, ?, ?, ?)", username, hpass, 1, 0, 0, 0, storeNumber)
-            store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
-            timestamp = datetime.now()
-            timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description,timestamp) values (?, ?, ?, ?, ?,?)",session.get("user_id"), store_id, "Create New User", "Users", (f"Username: {username} on store: {store}"),timestamp)
-        elif store =="Accounting":
-            storeNumber = 99
-            store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
-            timestamp = datetime.now()
-            timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description,timestamp) values (?, ?, ?, ?, ?,?)",session.get("user_id"), store_id, "Create New User", "Users", (f"Username: {username} on store: {store}"),timestamp)
-            db.execute("insert into users (username, hash, is_admin, is_super, is_accounting, is_manager, store_id) values (?, ?, ?, ?, ?, ?, ?)", username, hpass,0, 0, 1, 0, storeNumber)
-        else:
-          store_id = db.execute("select store_id from users where id = ?", session.get("user_id"))[0]['store_id']
-          timestamp = datetime.now()
-          timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-          db.execute("insert into user_movements (user_id, store_id, movement_type, m_table, m_description,timestamp) values (?, ?, ?, ?, ?,?)",session.get("user_id"), store_id, "Create New User", "Users",  (f"Username: {username} on store: {store}"),timestamp)
-          storeNumber = db.execute("select id from stores where name = ?" ,store)[0]['id']
-          db.execute("insert into users (username, hash, is_admin, is_super, is_accounting, is_manager, store_id) values (?, ?, ?, ?, ?, ?, ?)", username, hpass, 0,0, 0, 1, storeNumber)
-
-        flash(f"Created user: {username} at store {store}.")
-        return redirect("register", 302)
-    else:
-        roles = db.execute("select * from users where id = ?", session.get("user_id"))
-        if roles[0]['is_admin'] == 1:
-            # get rule to pass navbar
-            role = "admin"
-        stores = db.execute("select name from stores where id != 0 and id != 100 order by id")
-
-        names = db.execute("select username from users")
-        return render_template("register.html", role=role,  stores=stores, names=names)
+app.route("/register", methods=["GET", "POST"])(register)
 
 # logout user
 @app.route("/logout")
